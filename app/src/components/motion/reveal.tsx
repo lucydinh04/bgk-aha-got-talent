@@ -37,8 +37,8 @@ export function CrowdMagnetShuffle({
   const { reducedMotion } = useMotion();
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-[2cqw]">
-      <span className="border-y border-[rgba(255,127,50,.45)] px-[2.4cqw] py-[0.8cqw] text-[1.8cqw] font-mono tracking-[0.3em] text-[#FF7F32] uppercase">
+    <div className="led-core flex h-full flex-col items-center justify-center gap-[1.6cqw]">
+      <span className="text-led-body border-y border-[rgba(255,145,82,.5)] px-[2.4cqw] py-[0.8cqw] font-mono tracking-[0.28em] text-[#FF9152] uppercase">
         {awardName}
       </span>
 
@@ -46,7 +46,9 @@ export function CrowdMagnetShuffle({
         {performances.map((p, i) => (
           <div
             key={p.registrationCode}
-            className="rounded-[0.9cqw] border border-[rgba(62,216,240,.32)] bg-[rgba(4,9,20,.86)] px-[2cqw] py-[1.2cqw] text-center"
+            // Nền đặc, không blur. Bo góc nhỏ hơn và viền mảnh hơn: tám cái hộp
+            // bo góc 0.9cqw viền cyan sáng đọc ra là tám cái card giao diện web.
+            className="border-l-[0.15cqw] border-[#3ED8F0] bg-[rgba(4,9,20,.9)] px-[1.2cqw] py-[0.8cqw] text-left"
             style={
               reducedMotion
                 ? undefined
@@ -56,21 +58,21 @@ export function CrowdMagnetShuffle({
                     "--orbit-x": `${((i % 4) - 1.5) * 34}px`,
                     "--orbit-y": `${((i % 3) - 1) * 22}px`,
                     animation: `shuffle-orbit ${3.2 + (i % 3) * 0.5}s ease-in-out ${i * 0.22}s infinite`,
-                    willChange: "transform",
                   } as React.CSSProperties)
             }
           >
-            <span className="tnum block font-mono text-[1.2cqw] text-[#FF7F32]">
+            <span className="tnum text-led-meta block font-mono text-[#FF9152]">
               {orderLabel(p)}
             </span>
-            <span className="display mt-[0.4cqw] block text-[1.9cqw] text-[#F2F7FF]">
+            {/* Cỡ row chứ không phải title: tám card phải cùng lọt một khung. */}
+            <span className="display text-led-row mt-[0.4cqw] block text-[#F7FAFF]">
               {p.performanceName}
             </span>
           </div>
         ))}
       </div>
 
-      <p className="text-[1.3cqw] font-mono tracking-[0.2em] text-[#8FA3BC] uppercase">
+      <p className="text-led-meta font-mono tracking-[0.2em] text-[#8FA3BC] uppercase">
         Đang tổng hợp bình chọn khán giả
       </p>
     </div>
@@ -90,9 +92,14 @@ const INTENSITY: Record<
   { accent: string; glow: string; confetti: number; buildMs: number }
 > = {
   pulse: { accent: "#3ED8F0", glow: "rgba(62,216,240,.5)", confetti: 0, buildMs: 260 },
-  spotlight: { accent: "#FF7F32", glow: "rgba(255,127,50,.5)", confetti: 0, buildMs: 420 },
-  audience: { accent: "#FFA76B", glow: "rgba(255,167,107,.55)", confetti: 18, buildMs: 520 },
-  grand: { accent: "#FF7F32", glow: "rgba(255,127,50,.7)", confetti: 34, buildMs: 760 },
+  spotlight: { accent: "#FF9152", glow: "rgba(255,145,82,.5)", confetti: 0, buildMs: 420 },
+  // Confetti giảm 18→12 và 34→20. Mỗi mảnh là một node animate transform trong
+  // ~2.3s; 34 mảnh cùng lúc, đúng vào khoảnh khắc winner-rise và spotlight-sweep
+  // cũng đang chạy, là đỉnh tải của cả đêm — và đó lại là giây phút tuyệt đối
+  // không được phép giật. Ở khoảng cách xem trong hội trường, 20 mảnh và 34 mảnh
+  // không phân biệt được.
+  audience: { accent: "#FFA76B", glow: "rgba(255,167,107,.55)", confetti: 12, buildMs: 520 },
+  grand: { accent: "#FF9152", glow: "rgba(255,145,82,.7)", confetti: 20, buildMs: 760 },
 };
 
 export function AwardRevealSequence({
@@ -110,7 +117,7 @@ export function AwardRevealSequence({
   const { reducedMotion } = useMotion();
 
   return (
-    <div className="relative flex h-full flex-col items-center justify-center gap-[1.4cqw]">
+    <div className="led-core relative flex h-full flex-col items-center justify-center gap-[0.9cqw]">
       {/* Energy build-up: các đường hội tụ về tâm, chạy một lần */}
       {!reducedMotion ? (
         <ConvergingLines accent={cfg.accent} durationMs={cfg.buildMs} />
@@ -121,7 +128,7 @@ export function AwardRevealSequence({
       ) : null}
 
       <span
-        className="anim-enter-fade border-y px-[2.4cqw] py-[0.8cqw] text-[1.8cqw] font-mono tracking-[0.3em] uppercase"
+        className="anim-enter-fade text-led-body border-y px-[2.4cqw] py-[0.8cqw] font-mono tracking-[0.28em] uppercase"
         style={{
           borderColor: cfg.glow,
           color: cfg.accent,
@@ -133,25 +140,34 @@ export function AwardRevealSequence({
 
       {awardSub ? (
         <span
-          className="anim-enter-fade text-[1.4cqw] font-mono tracking-[0.24em] text-[#C6D4E6] uppercase"
+          className="anim-enter-fade text-led-meta font-mono tracking-[0.24em] text-[#B8C9DE] uppercase"
           style={stagger(0, 0, cfg.buildMs + 160)}
         >
           {awardSub}
         </span>
       ) : null}
 
+      {/*
+        Tên người thắng là chữ to nhất tồn tại trên màn này — cỡ hero, 200px
+        trên canvas 3008×1088.
+
+        text-shadow đổi từ `0 0 4cqw <glow>` sang một lớp tối hẹp cộng một lớp
+        glow vừa phải: glow rộng 4cqw không có offset làm viền chữ nhoè ra mọi
+        phía, và trên panel LED thì chữ trắng nhoè trên nền sáng của KV đọc tệ
+        hơn hẳn chữ trắng có bóng tối tách nền.
+      */}
       <h1
-        className="display text-center text-[5.4cqw] leading-[0.95] text-[#F2F7FF]"
+        className="display text-led-hero text-center leading-[0.92] text-[#F7FAFF]"
         style={{
           animation: `winner-rise 720ms cubic-bezier(0.22,1,0.36,1) ${cfg.buildMs + 300}ms both`,
-          textShadow: `0 0 4cqw ${cfg.glow}`,
+          textShadow: `0 0.2cqw 1.4cqw rgba(4,9,20,.95), 0 0 2.4cqw ${cfg.glow}`,
         }}
       >
         {performance.performanceName}
       </h1>
 
       <p
-        className="anim-enter-up text-[1.6cqw] font-mono tracking-[0.14em] text-[#C6D4E6] uppercase"
+        className="anim-enter-up text-led-body font-mono tracking-[0.12em] text-[#B8C9DE] uppercase"
         style={stagger(0, 0, cfg.buildMs + 620)}
       >
         {teamLabel(performance)}
@@ -291,47 +307,58 @@ export function ScorecardReveal({
   total: string;
 }) {
   return (
-    <div className="flex h-full flex-col justify-center gap-[1.2cqw]">
+    <div className="led-core flex h-full flex-col justify-center gap-[0.8cqw]">
       <span
-        className="anim-enter-fade text-[1.4cqw] font-mono tracking-[0.26em] text-[#FF7F32] uppercase"
+        className="anim-enter-fade text-led-meta font-mono tracking-[0.24em] text-[#FF9152] uppercase"
         style={stagger(0, 0, 80)}
       >
         {awardName}
       </span>
       <h2
-        className="anim-enter-left display text-[3.2cqw] text-[#F2F7FF]"
+        className="anim-enter-left display text-led-title text-[#F7FAFF]"
         style={stagger(0, 0, 200)}
       >
         {performance.performanceName}
       </h2>
 
-      <ul className="mt-[0.6cqw] flex w-[58cqw] max-w-full flex-col">
+      {/*
+        HAI CỘT, không phải ba.
+
+        Bản trước có cột trọng số ở 1.2cqw (23px) giữa tiêu chí và điểm. Không ai
+        trong hội trường soát lại phép nhân trọng số trên màn LED, nên cột đó là
+        mật độ thuần: nó ép hai cột còn lại hẹp đi và bắt cỡ chữ phải nhỏ. Bỏ nó
+        thì cả bảng lên được cỡ `led-row`, và tổng điểm lên được cỡ metric.
+
+        `weight` vẫn nằm trong prop và vẫn đến từ snapshot đã khoá — chỉ là không
+        vẽ ra nữa. Không đổi kiểu dữ liệu để lần sau muốn hiện lại thì có sẵn.
+      */}
+      <ul className="mt-[0.4cqw] flex w-full flex-col">
         {rows.map((r, i) => (
           <li
             key={r.label}
-            className="anim-enter-up grid grid-cols-[1fr_12%_16%] items-baseline gap-[1cqw] border-b border-[rgba(146,170,200,.18)] py-[0.6cqw]"
+            className="anim-enter-up led-rule flex items-baseline justify-between gap-[2cqw] py-[0.7cqw]"
             style={stagger(i, 130, 420)}
           >
-            <span className="text-[1.5cqw] text-[#DCE7F5]">{r.label}</span>
-            <span className="tnum text-right font-mono text-[1.2cqw] text-[#3ED8F0]">
-              {Math.round(r.weight * 100)}%
-            </span>
-            <span className="tnum display text-right text-[2cqw] text-[#F2F7FF]">
+            <span className="text-led-row text-[#DCE7F5]">{r.label}</span>
+            <span className="tnum display text-led-row shrink-0 text-[#F7FAFF]">
               {r.value}
             </span>
           </li>
         ))}
       </ul>
 
+      {/* Tổng điểm là con số duy nhất khán giả sẽ nhớ — cỡ metric, không phải
+          cùng cỡ với các dòng tiêu chí như bản trước. */}
       <div
-        className="anim-enter-pop mt-[0.8cqw] flex w-[58cqw] max-w-full items-baseline justify-between"
+        className="anim-enter-pop mt-[0.7cqw] flex w-full items-baseline justify-between"
         style={stagger(rows.length, 130, 420)}
       >
-        <span className="text-[1.4cqw] font-mono tracking-[0.2em] text-[#C6D4E6] uppercase">
+        <span className="text-led-meta font-mono tracking-[0.2em] text-[#B8C9DE] uppercase">
           Tổng điểm
         </span>
-        <span className="display tnum text-[4.4cqw] text-[#FF7F32] [text-shadow:0_0_3cqw_rgba(255,127,50,.5)]">
+        <span className="display tnum text-led-metric leading-none text-[#FF9152] [text-shadow:0_0.2cqw_1.4cqw_rgba(4,9,20,.95)]">
           {total}
+          <span className="text-led-body ml-[1cqw] text-[#6B819C]">/ 100</span>
         </span>
       </div>
     </div>
@@ -396,10 +423,16 @@ export function VoteCountdown({
 
   return (
     <div
-      className="display tnum flex items-baseline gap-[0.4cqw] text-[9cqw] leading-none"
+      // Cỡ countdown: 13cqw ≈ 250px trên màn 1920. Đồng hồ là thứ cả hội trường
+      // cùng nhìn một lúc, nên nó là chữ lớn nhất mà màn này bao giờ hiện.
+      className="display tnum text-led-countdown flex items-baseline gap-[0.4cqw] leading-none"
       style={{
         color: accent,
-        textShadow: glow ? `0 0 4cqw ${warm ? "rgba(255,127,50,.6)" : "rgba(62,216,240,.5)"}` : undefined,
+        // Bóng tối luôn có, glow chỉ thêm khi dưới 60s. Bản trước chỉ có glow và
+        // không có bóng, nên ở phút đầu con số không tách khỏi KV.
+        textShadow: glow
+          ? `0 0.2cqw 1.4cqw rgba(4,9,20,.95), 0 0 3cqw ${warm ? "rgba(255,145,82,.6)" : "rgba(62,216,240,.5)"}`
+          : "0 0.2cqw 1.4cqw rgba(4,9,20,.95)",
         transition: "color 600ms ease, text-shadow 600ms ease",
         // Đập theo từng giây, không flash toàn màn hình.
         animation: urgent ? "urgent-beat 1s ease-in-out infinite" : undefined,
@@ -445,20 +478,27 @@ export function VoteLivePanel({
   serverNow: string;
 }) {
   return (
-    <div className="flex h-full items-center justify-between gap-[3cqw]">
-      <div className="flex flex-col gap-[1.2cqw]">
-        <span className="anim-enter-left text-[1.5cqw] font-mono tracking-[0.28em] text-[#3ED8F0] uppercase">
+    <div className="led-core flex h-full items-center justify-between gap-[3cqw]">
+      <div className="flex flex-col gap-[1.4cqw]">
+        <span className="anim-enter-left text-led-meta font-mono tracking-[0.26em] text-[#3ED8F0] uppercase">
           Bình chọn tiết mục yêu thích
         </span>
         <VoteCountdown endsAt={endsAt} serverNow={serverNow} />
-        <p className="anim-enter-up text-[1.5cqw] text-[#C6D4E6]" style={stagger(0, 0, 300)}>
-          Mỗi người tối đa <strong className="text-[#F2F7FF]">2 phiếu</strong>
-        </p>
         <p
-          className="anim-enter-up tnum text-[1.8cqw] font-mono text-[#FFA76B]"
+          className="anim-enter-up text-led-body text-[#B8C9DE]"
+          style={stagger(0, 0, 300)}
+        >
+          Mỗi người tối đa <strong className="text-[#F7FAFF]">2 phiếu</strong>
+        </p>
+        {/* Chỉ số ballot hợp lệ — không bao giờ là vote count từng tiết mục */}
+        <p
+          className="anim-enter-up tnum display text-led-title text-[#FFA76B]"
           style={stagger(0, 0, 420)}
         >
-          {participants} khán giả đã tham gia
+          {participants}
+          <span className="text-led-body ml-[1cqw] font-mono tracking-[0.12em] text-[#B8C9DE] uppercase">
+            khán giả đã tham gia
+          </span>
         </p>
       </div>
 
@@ -470,15 +510,15 @@ export function VoteLivePanel({
 
 export function VoteClosedPanel() {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-[1.2cqw]">
+    <div className="led-core flex h-full flex-col items-center justify-center gap-[1cqw]">
       <h1
-        className="anim-enter-up display text-[4.6cqw] text-[#F2F7FF]"
+        className="anim-enter-up display text-led-display text-[#F7FAFF] [text-shadow:0_0.2cqw_1.4cqw_rgba(4,9,20,.95)]"
         style={stagger(0, 0, 120)}
       >
         Bình chọn đã kết thúc
       </h1>
       <p
-        className="anim-enter-up text-[1.7cqw] font-mono tracking-[0.2em] text-[#C6D4E6] uppercase"
+        className="anim-enter-up text-led-body font-mono tracking-[0.18em] text-[#B8C9DE] uppercase"
         style={stagger(0, 0, 320)}
       >
         Ban Tổ chức đang xác nhận kết quả
@@ -486,7 +526,7 @@ export function VoteClosedPanel() {
       <span
         aria-hidden
         data-motion-decorative="true"
-        className="mt-[1cqw] block h-[0.3cqw] w-[22cqw] overflow-hidden rounded-full bg-[rgba(146,170,200,.25)]"
+        className="mt-[0.8cqw] block h-[0.22cqw] w-[14cqw] overflow-hidden rounded-full bg-[rgba(146,170,200,.25)]"
       >
         <span
           className="block h-full w-[36%]"

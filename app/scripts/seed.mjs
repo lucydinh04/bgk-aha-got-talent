@@ -14,7 +14,7 @@
 
 import { DatabaseSync } from "node:sqlite";
 import { randomUUID } from "node:crypto";
-import { mkdirSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -23,7 +23,21 @@ import { SCHEMA_SQL } from "../src/lib/db/schema.ts";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const APP = resolve(HERE, "..");
 const DB_PATH = process.env.AHA_DB_PATH ?? join(APP, ".data", "aha.db");
-const SNAPSHOT = resolve(APP, "..", "data", "snapshot.json");
+const SNAPSHOT_CANDIDATES = [
+  process.env.AHA_SNAPSHOT_PATH,
+  "/data/snapshot.json",
+  "/app/seed-data/snapshot.json",
+  resolve(APP, "..", "data", "snapshot.json"),
+  resolve(APP, "data", "snapshot.json"),
+].filter(Boolean);
+
+const SNAPSHOT = SNAPSHOT_CANDIDATES.find((p) => existsSync(p));
+
+if (!SNAPSHOT) {
+  throw new Error(
+    `Cannot find snapshot.json. Checked: ${SNAPSHOT_CANDIDATES.join(", ")}`
+  );
+}
 
 const reset = process.argv.includes("--reset");
 const now = () => new Date().toISOString();

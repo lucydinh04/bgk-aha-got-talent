@@ -10,7 +10,7 @@ import {
   stagger,
 } from "@/components/motion/primitives";
 import type { LocationCode, Performance } from "@/lib/data";
-import { EVENT_DATE, orderLabel, teamLabel, CRITERIA } from "@/lib/data";
+import { EVENT_DATE, orderLabel, teamLabel } from "@/lib/data";
 
 export type LEDMode =
   // chế độ A · theo dõi tiến độ — KHÔNG BAO GIỜ có điểm
@@ -42,17 +42,46 @@ export type LEDMode =
   | "full_ranking"
   | "emergency_hide";
 
+/** Canvas LED vật lý. Một nguồn duy nhất — dùng cho aspect-ratio và frame preview. */
+export const LED_CANVAS = { width: 3008, height: 1088 } as const;
+
 /**
- * Khung LED 16:9. Mọi nội dung nằm trong safe margin 5%.
+ * Khung màn LED — canvas 3008 × 1088, tỉ lệ 2.765:1.
  *
- * KV ngang là 1920×1072 (≈16:9) nên dùng cover ở khung 16/9 gần như không cắt.
- * `mode="full"` giữ trọn artwork cho standby; các state có chữ dùng `quiet`
- * để neo xuống dải light trail, tránh đè lên headline in sẵn trong ảnh.
+ * TỈ LỆ
+ *
+ * `aspect-ratio: 3008 / 1088` khai báo tường minh thay vì `aspect-video`. Khung
+ * lấy trọn bề rộng viewport rồi canh giữa theo chiều dọc; phần dư trên và dưới
+ * là gradient navy campaign, không phải đen tuyệt đối.
+ *
+ * `@container` đặt trên chính khung này, nên 1cqw = 1% bề rộng canvas = 30.08px
+ * ở 3008. Mọi cỡ chữ và khoảng cách trong file này là cqw, nên bố cục ở
+ * 1920×695 và ở 3008×1088 giống nhau tuyệt đối, chỉ khác số pixel.
+ *
+ * BỐ CỤC NGANG, KHÔNG PHẢI XẾP DỌC
+ *
+ * Đây là thay đổi lớn nhất so với bản 16:9. Canvas cao 1088 nhưng rộng 3008;
+ * sau safe zone chỉ còn 944px chiều cao — chỗ cho khoảng ba đến bốn dòng chữ,
+ * không hơn. Xếp dọc năm phần tử như khung 16:9 sẽ trào ra ngoài.
+ *
+ * Nên nội dung dàn theo chiều NGANG, đúng cách một graphic phát sóng dùng khung
+ * ultra-wide: nhãn và số nằm cạnh headline chứ không nằm dưới.
+ *
+ * BA DẢI DỌC
+ *
+ *   · dải trái  15% (451px) — không khí, nhãn phụ, light trail
+ *   · lõi giữa  70% (2106px) — toàn bộ chữ quan trọng
+ *   · dải phải  15% (451px) — không khí, chỉ báo trạng thái, QR
+ *
+ * Hai dải mép tồn tại vì một lý do vật lý: mép ngoài của tường LED là chỗ dễ bị
+ * khung nhôm ăn vào, bị lệch màu giữa các tấm panel, và là chỗ khán giả ngồi
+ * chéo góc nhìn thấy méo nhất. Chữ quan trọng không đặt ở đó.
  */
 export function LEDStage({
   quiet = true,
   bare = false,
   anchor = "bottom",
+  fill = false,
   children,
 }: {
   quiet?: boolean;
@@ -60,24 +89,36 @@ export function LEDStage({
   bare?: boolean;
   /** `center` bật scrim giữa khung cho các màn công bố. */
   anchor?: "bottom" | "center";
+  /**
+   * `true` khi khung nằm trong một hộp đã có kích thước cố định — dùng bởi frame
+   * preview 3008×1088 ở development. Mặc định khung tự canh giữa viewport.
+   */
+  fill?: boolean;
   children: ReactNode;
 }) {
   return (
-    <div className="bg-ink flex min-h-dvh items-center justify-center">
-      {/*
-        @container bật container-type: inline-size để mọi cỡ chữ tính bằng cqw
-        co giãn theo bề rộng màn LED, không phụ thuộc viewport.
-        max-w giữ khung 16:9 luôn lọt trong chiều cao màn hình.
-
-        Nền nằm NGOÀI phần nội dung state và không nhận prop realtime nào, nên
-        snapshot SSE về bao nhiêu lần cũng không làm nó remount hay chạy lại
-        animation. Đây là điều kiện để "background không reset khi realtime
-        update" — không phải một tối ưu, mà là kiến trúc.
-      */}
-      <div className="@container relative isolate aspect-video w-full max-w-[calc(100dvh*16/9)] overflow-hidden">
+    <div
+      className={`relative flex w-full items-center justify-center overflow-hidden ${
+        fill ? "h-full" : "min-h-dvh"
+      }`}
+      style={{
+        // Phần dư trên/dưới khung ultra-wide. Navy campaign, không phải đen:
+        // trên tường LED một dải đen tuyệt đối đọc ra là panel chết.
+        background:
+          "radial-gradient(ellipse 80% 120% at 50% 50%, #0a1730 0%, #060d1e 55%, #040914 100%)",
+      }}
+    >
+      <div
+        className="@container relative isolate w-full max-w-full overflow-hidden"
+        style={{
+          aspectRatio: `${LED_CANVAS.width} / ${LED_CANVAS.height}`,
+          // Không bao giờ cao hơn viewport: trên màn 16:9 khung sẽ letterbox
+          // trên/dưới thay vì bị cắt hai bên.
+          maxHeight: "100dvh",
+        }}
+      >
         <AnimatedCampaignBackground quiet={quiet} bare={bare} anchor={anchor} />
-        {/* safe margin 5% — không có gì chạm mép màn */}
-        <div className="relative z-10 flex h-full w-full flex-col p-[5%]">
+        <div className="led-safe relative z-10 flex h-full w-full flex-col">
           {children}
         </div>
       </div>
@@ -85,427 +126,220 @@ export function LEDStage({
   );
 }
 
-export function LEDStandby({ location }: { location: LocationCode }) {
+/**
+ * Chế độ xem khung thật — CHỈ development.
+ *
+ * Dựng canvas ở đúng 3008 × 1088 CSS pixel rồi thu nhỏ bằng `transform: scale`
+ * để lọt viewport. Khác hẳn với việc mở `/live` ở cửa sổ nhỏ: ở đây mọi cỡ chữ
+ * là px THẬT của canvas, nên đo được trực tiếp bằng devtools và kiểm được luật
+ * "không chữ nào dưới 30px".
+ *
+ * Hệ số thu nhỏ tính thuần bằng CSS `min()`, không JS, nên không có resize
+ * listener và không lệch hydration. Hộp bọc ngoài lấy kích thước ĐÃ nhân hệ số
+ * để trang không sinh scrollbar — `transform` không thu nhỏ ô layout mà nó chiếm.
+ */
+export function LEDFramePreview({ children }: { children: ReactNode }) {
+  const scale = `min((100dvw - 4rem) / ${LED_CANVAS.width}, (100dvh - 7rem) / ${LED_CANVAS.height})`;
   return (
-    // Góc dưới trái là vùng yên tĩnh duy nhất của KV: icon A ở giữa,
-    // logo và badge ở trên, DRESSCODE ở dưới phải. Text đặt ở đây không đè lên gì.
-    <div className="flex h-full flex-col items-start justify-end">
-      {/* KV đã in sẵn logo Ahamove, badge 11 năm và headline — không lặp lại */}
-      <p
-        className="anim-enter-up text-[1.5cqw] font-mono tracking-[0.3em] text-[#C6D4E6] uppercase"
-        style={stagger(0, 0, 140)}
+    <div
+      className="bg-ink flex min-h-dvh flex-col items-center justify-center gap-[1.5rem] p-8"
+      style={{ ["--led-scale" as string]: scale }}
+    >
+      <div
+        style={{
+          width: `calc(${LED_CANVAS.width}px * var(--led-scale))`,
+          height: `calc(${LED_CANVAS.height}px * var(--led-scale))`,
+          outline: "1px solid rgba(53,214,240,.45)",
+          outlineOffset: "0.5rem",
+        }}
       >
-        {location} · {EVENT_DATE[location]}
-      </p>
-
-      {/* Light sweep chạy qua headline. `overflow-hidden` giữ vệt sáng trong
-          khung chữ; chữ nằm trên z cao hơn nên không bao giờ bị vệt che. */}
-      <span
-        className="anim-enter-up relative mt-[0.6cqw] inline-block overflow-hidden"
-        style={stagger(0, 0, 300)}
-      >
-        <span className="display relative z-10 text-[2.4cqw] tracking-[0.1em] text-[#FF7F32] [text-shadow:0_2px_18px_rgba(4,9,20,.9)]">
-          Unlock Your Next Move
-        </span>
-        <span
-          aria-hidden
-          data-motion-decorative="true"
-          className="absolute inset-y-0 left-0 z-20 w-[24%]"
+        <div
           style={{
-            background:
-              "linear-gradient(100deg, transparent 0%, rgba(255,255,255,.5) 50%, transparent 100%)",
-            animation: "light-sweep 6.5s ease-in-out 1.4s infinite",
+            width: LED_CANVAS.width,
+            height: LED_CANVAS.height,
+            transform: "scale(var(--led-scale))",
+            transformOrigin: "top left",
           }}
-        />
-      </span>
-    </div>
-  );
-}
-
-/**
- * Chuỗi vào của tiết mục đang diễn: số thứ tự → tên → thông tin đội.
- * Tổng ~760ms, nằm trong khoảng 600–900ms của brief.
- */
-export function LEDPerformance({ performance }: { performance: Performance }) {
-  return (
-    <BottomBand>
-      <span
-        className="anim-enter-left flex items-center gap-[0.8cqw] text-[1.7cqw] font-mono tracking-[0.24em] text-[#FF7F32]"
-        style={stagger(0, 0, 60)}
-      >
-        <span
-          aria-hidden
-          data-motion-decorative="true"
-          className="inline-block size-[1cqw] rounded-full bg-[#FF7F32]"
-          style={{ animation: "badge-breathe 2.2s ease-in-out infinite" }}
-        />
-        Tiết mục {orderLabel(performance)} · Đang biểu diễn
-      </span>
-      <h1
-        className="anim-enter-left display text-[4.6cqw] text-[#F2F7FF]"
-        style={stagger(0, 0, 220)}
-      >
-        {performance.performanceName}
-      </h1>
-      <p
-        className="anim-enter-up text-[1.6cqw] font-mono tracking-[0.12em] text-[#C6D4E6] uppercase"
-        style={stagger(0, 0, 420)}
-      >
-        {[performance.performanceType, performance.department]
-          .filter(Boolean)
-          .join(" · ")}{" "}
-        · {teamLabel(performance)}
-      </p>
-    </BottomBand>
-  );
-}
-
-export function LEDJudging({
-  performance,
-  done,
-  total,
-}: {
-  performance: Performance;
-  done: number;
-  total: number;
-}) {
-  const pct = total ? (done / total) * 100 : 0;
-  return (
-    <div className="relative h-full">
-      {/* Mỗi lần `done` tăng: một nhịp năng lượng chạy đúng một lần rồi tắt. */}
-      <EnergyPulse trigger={done} />
-
-      <BottomBand>
-        <span className="flex items-center gap-[1cqw]">
-          <span
-            aria-hidden
-            data-motion-decorative="true"
-            className="size-[1.3cqw] rounded-full bg-[#3ED8F0]"
-            style={{ animation: "pulse-soft 1.8s ease-in-out infinite" }}
-          />
-          <span className="text-[1.5cqw] font-mono tracking-[0.26em] text-[#3ED8F0] uppercase">
-            Ban Giám khảo đang chấm điểm
-          </span>
-        </span>
-        <h1 className="display text-[3cqw] text-[#F2F7FF]">
-          {performance.performanceName}
-        </h1>
-        {/* Chỉ con số đếm — không tên BGK nào chưa chấm, không điểm, không thứ hạng */}
-        <p className="display tnum text-[5.4cqw] leading-none text-[#3ED8F0]">
-          <AnimatedCounter value={done} /> / {total} BGK đã hoàn tất
-        </p>
-        <AnimatedProgress
-          value={pct}
-          tone={done >= total && total > 0 ? "ok" : "cyan"}
-          className="h-[0.9cqw] w-[42%]"
-          label={`${done} trên ${total} giám khảo đã gửi điểm`}
-        />
-      </BottomBand>
-    </div>
-  );
-}
-
-/**
- * Cao trào của một tiết mục: thanh tiến độ đầy, check được vẽ ra, headline vào.
- * Tổng ~1.35s rồi về ambient — đúng khoảng 1–1.5s của brief.
- */
-export function LEDCompleted({ performance }: { performance: Performance }) {
-  return (
-    <BottomBand>
-      {/* Thanh chạy nốt tới 100% để nối liền mạch từ state judging_progress */}
-      <AnimatedProgress
-        value={100}
-        tone="ok"
-        className="anim-enter-fade h-[0.9cqw] w-[42%]"
-        label="Đã hoàn tất chấm điểm"
-      />
-      <span className="flex items-center gap-[1.2cqw]">
-        <CheckReveal size="4cqw" delay={220} />
-        <span
-          className="anim-enter-up display text-[4cqw] text-[#F2F7FF]"
-          style={stagger(0, 0, 620)}
         >
-          Đã hoàn tất chấm điểm
-        </span>
-      </span>
-      <p
-        className="anim-enter-up text-[1.7cqw] font-mono tracking-[0.16em] text-[#C6D4E6] uppercase"
-        style={stagger(0, 0, 860)}
-      >
-        {performance.performanceName}
-      </p>
-      <p
-        className="anim-enter-up text-[1.5cqw] text-[#8FA3BC]"
-        style={stagger(0, 0, 1060)}
-      >
-        Điểm số đã được ghi nhận và sẽ được công bố vào cuối chương trình.
-      </p>
-    </BottomBand>
-  );
-}
-
-export function LEDVoteLive({
-  countdown,
-  participants,
-  voteUrl,
-}: {
-  countdown: string;
-  participants: number;
-  voteUrl: string;
-}) {
-  return (
-    <BottomBand>
-      <p className="text-[1.5cqw] font-mono tracking-[0.28em] text-[#3ED8F0] uppercase">
-        Bình chọn đang diễn ra
-      </p>
-      <div className="flex items-end gap-[3cqw]">
-        <p className="display tnum text-[11cqw] leading-[0.8] text-[#F2F7FF]">
-          {countdown}
-        </p>
-        <div className="flex items-center gap-[1.6cqw] pb-[0.6cqw]">
-          <QRPanel />
-          <div>
-            <p className="text-[1.4cqw] font-mono tracking-[0.12em] text-[#C6D4E6] uppercase">
-              Quét QR và chọn
-              <br />
-              tối đa 2 tiết mục
-            </p>
-            <p className="mt-[0.6cqw] border-b border-[rgba(62,216,240,.4)] pb-[0.3cqw] text-[1.5cqw] font-mono tracking-[0.08em] text-[#3ED8F0]">
-              {voteUrl}
-            </p>
-          </div>
+          {children}
         </div>
       </div>
-      {/* Chỉ số ballot hợp lệ — không bao giờ là vote count từng tiết mục */}
-      <p className="display tnum text-[2.8cqw] tracking-[0.06em] text-[#3ED8F0]">
-        {participants} khán giả đã tham gia
+      <p className="text-silver-dim font-mono text-xs tracking-[0.2em] uppercase">
+        Khung LED thật · {LED_CANVAS.width} × {LED_CANVAS.height} px · tỉ lệ{" "}
+        {(LED_CANVAS.width / LED_CANVAS.height).toFixed(3)}:1 · safe zone 120 × 72
       </p>
-    </BottomBand>
+    </div>
   );
 }
 
-export function LEDShuffle({
-  awardName,
-  performances,
-}: {
-  awardName: string;
-  performances: Performance[];
-}) {
-  return (
-    <BottomBand>
-      <AwardName>{awardName}</AwardName>
-      {/*
-        Payload KHÔNG chứa winner_performance_id ở state này.
-        Shuffle là hiệu ứng thị giác thuần tuý — không có gì để lộ.
-      */}
-      <div className="grid w-[86%] grid-cols-4 gap-[1.2cqw]">
-        {performances.map((p, i) => (
-          <div
-            key={p.registrationCode}
-            className="display grid min-h-[6.5cqw] place-items-center rounded-[0.6cqw] border border-[rgba(62,216,240,.35)] bg-[rgba(62,216,240,.07)] px-[0.9cqw] py-[1.6cqw] text-[1.55cqw] leading-tight text-[#DCE7F5]"
-            style={{
-              animation: `shuffle-drift ${2.4 + i * 0.35}s ease-in-out ${i * 0.2}s infinite`,
-            }}
-          >
-            {p.performanceName}
-          </div>
-        ))}
-      </div>
-    </BottomBand>
-  );
-}
-
-export function LEDAwardReveal({
-  awardName,
-  awardSub,
-  performance,
-  total,
-}: {
-  awardName: string;
-  awardSub?: string;
-  performance: Performance;
-  total?: string;
-}) {
-  return (
-    <BottomBand>
-      <AwardName>{awardName}</AwardName>
-      {awardSub ? (
-        <p className="text-[1.4cqw] font-mono tracking-[0.28em] text-[#3ED8F0] uppercase">
-          {awardSub}
-        </p>
-      ) : null}
-      <h1 className="display text-[4.2cqw] text-[#F2F7FF]">
-        {performance.performanceName}
-      </h1>
-      <p className="text-[1.5cqw] font-mono tracking-[0.12em] text-[#C6D4E6] uppercase">
-        {teamLabel(performance)} · {performance.department}
-      </p>
-      {total ? (
-        <p className="display tnum text-[6.4cqw] leading-[0.9] text-[#FF7F32]">
-          {total}
-          <span className="ml-[1cqw] text-[2cqw] text-[#6B819C]">/ 100</span>
-        </p>
-      ) : null}
-      <span />
-    </BottomBand>
-  );
-}
-
-/* ── primitives ───────────────────────────────────────────────────────────*/
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRIMITIVE BỐ CỤC ULTRA-WIDE
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 /**
- * Nội dung LED luôn nằm ở dải dưới đáy, canh trái.
+ * Khung ba dải. `left` và `right` là nhãn phụ ở hai dải mép; `children` là lõi
+ * giữa 70% chứa chữ quan trọng.
  *
- * Vì sao không canh giữa: vùng giữa KV đã có headline "CHUYỂN MÌNH BỨT PHÁ" và
- * icon A. Đặt chữ ở đó vừa lặp chữ vừa phải phủ overlay nặng tới mức giết sạch
- * màu campaign. Dải đáy là vùng light trail, yên tĩnh và tương phản tốt.
+ * Hai dải mép canh theo trục dọc khác nhau có chủ ý: trái canh trên, phải canh
+ * dưới. Đối xứng hoàn toàn trên khung 2.765:1 trông như một bảng biểu; lệch trục
+ * cho ra nhịp của một graphic phát sóng.
  */
-/**
- * Panel tối đặc cho các state nhiều dữ liệu (bảng điểm, bảng trạng thái,
- * xếp hạng). Chữ nhỏ và nhiều dòng đặt thẳng lên KV sẽ chồng vào headline và
- * icon A, đọc từ cuối hội trường không nổi. Panel giữ KV sống ở xung quanh mà
- * vùng dữ liệu vẫn tương phản cao.
- */
-function LEDPanel({ children }: { children: ReactNode }) {
+function StageGrid({
+  left,
+  right,
+  children,
+}: {
+  left?: ReactNode;
+  right?: ReactNode;
+  children: ReactNode;
+}) {
   return (
-    <div className="flex h-full flex-col justify-end">
-      <div className="w-fit max-w-full rounded-[0.9cqw] border border-[rgba(62,216,240,.28)] bg-[rgba(4,9,20,.9)] px-[2.4cqw] py-[1.8cqw] backdrop-blur-sm">
-        {children}
+    <div className="grid h-full w-full grid-cols-[15%_70%_15%] items-stretch">
+      <div className="flex flex-col justify-start pr-[2cqw]">{left}</div>
+      <div className="flex min-w-0 flex-col justify-center">{children}</div>
+      <div className="flex flex-col items-end justify-end pl-[2cqw] text-right">
+        {right}
       </div>
     </div>
   );
 }
 
-function BottomBand({ children }: { children: ReactNode }) {
+/** Nhãn dọc ở dải mép — cỡ meta, mono, giãn chữ, màu nguội. */
+function RailLabel({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="flex h-full flex-col items-start justify-end gap-[0.8cqw] text-left">
+    <span
+      className={`text-led-meta font-mono tracking-[0.22em] text-[#7E93AE] uppercase ${className}`}
+    >
       {children}
-    </div>
-  );
-}
-
-function AwardName({ children }: { children: ReactNode }) {
-  return (
-    <span className="border-y border-[rgba(255,127,50,.45)] px-[2.4cqw] py-[0.8cqw] text-[1.8cqw] font-mono tracking-[0.3em] text-[#FF7F32] uppercase">
-      {children}
-    </span>
-  );
-}
-
-function Check() {
-  return (
-    <span className="grid size-[4cqw] shrink-0 place-items-center rounded-full border-[0.3cqw] border-[#34D399] text-[2cqw] leading-none text-[#34D399]">
-      ✓
     </span>
   );
 }
 
 /**
- * QR nằm trên một panel trắng đặc — nền KV không bao giờ được lọt vào vùng QR,
- * nếu không máy quét sẽ đọc sai.
+ * Vạch light trail trang trí ở dải mép. Thuần trang trí, `transform` only.
+ * Đây là thứ lấp hai dải 451px mà không đặt chữ quan trọng vào đó.
  */
-function QRPanel({ size = "sm" }: { size?: "sm" | "lg" }) {
-  const box = size === "lg" ? "size-[13cqw] p-[1cqw]" : "size-[8.5cqw] p-[0.7cqw]";
-  return (
-    <div className={`relative shrink-0 bg-white ${box}`}>
-      <div
-        aria-hidden
-        className="absolute inset-[1.2cqw]"
-        style={{
-          background:
-            "conic-gradient(from 0deg, #0A1524 0 25%, transparent 0 50%, #0A1524 0 75%, transparent 0)",
-          backgroundSize: "1.5cqw 1.5cqw",
-          opacity: 0.9,
-        }}
-      />
-      {["top-[1.2cqw] left-[1.2cqw]", "top-[1.2cqw] right-[1.2cqw]", "bottom-[1.2cqw] left-[1.2cqw]"].map(
-        (pos) => (
-          <span
-            key={pos}
-            aria-hidden
-            className={`absolute size-[3cqw] border-[0.75cqw] border-[#0A1524] bg-white ${pos}`}
-          />
-        ),
-      )}
-    </div>
-  );
-}
-
-/* ═══ Chế độ A · các state còn lại ════════════════════════════════════════ */
-
-export function LEDInterlude({
-  next,
-  prepMinutes,
-}: {
-  next: Performance;
-  prepMinutes?: number;
-}) {
-  return (
-    <BottomBand>
-      <span
-        className="anim-enter-left text-[1.5cqw] font-mono tracking-[0.28em] text-[#3ED8F0] uppercase"
-        style={stagger(0, 0, 60)}
-      >
-        Tiết mục tiếp theo
-      </span>
-      <h1
-        className="anim-enter-left display text-[4.4cqw] text-[#F2F7FF]"
-        style={stagger(0, 0, 200)}
-      >
-        {orderLabel(next)} · {next.performanceName}
-      </h1>
-      <p
-        className="anim-enter-up text-[1.6cqw] font-mono tracking-[0.12em] text-[#C6D4E6] uppercase"
-        style={stagger(0, 0, 380)}
-      >
-        {next.performanceType} · {teamLabel(next)}
-      </p>
-      {prepMinutes ? (
-        <p
-          className="anim-enter-up display tnum text-[2.4cqw] text-[#FF7F32]"
-          style={stagger(0, 0, 540)}
-        >
-          Chuẩn bị {prepMinutes} phút
-        </p>
-      ) : null}
-    </BottomBand>
-  );
-}
-
-/** Thiếu BGK: KHÔNG được hiện "Đã hoàn tất", và không lộ lý do thiếu. */
-export function LEDWaiting({ performance }: { performance: Performance }) {
-  return (
-    <BottomBand>
-      <span
-        className="anim-enter-left flex items-center gap-[0.8cqw] text-[1.5cqw] font-mono tracking-[0.26em] text-[#FBBF24] uppercase"
-        style={stagger(0, 0, 60)}
-      >
-        <ScanLoader tone="#FBBF24" />
-        Đang chờ hoàn tất chấm điểm
-      </span>
-      <h1
-        className="anim-enter-left display text-[4cqw] text-[#F2F7FF]"
-        style={stagger(0, 0, 220)}
-      >
-        {performance.performanceName}
-      </h1>
-      <p
-        className="anim-enter-up text-[1.5cqw] text-[#8FA3BC]"
-        style={stagger(0, 0, 400)}
-      >
-        Ban Tổ chức đang xác nhận kết quả.
-      </p>
-    </BottomBand>
-  );
-}
-
-/** Loader futuristic: một vệt quét chạy trong rãnh hẹp. Không spinner tròn. */
-export function ScanLoader({ tone = "#3ED8F0" }: { tone?: string }) {
+function RailTrail({ side }: { side: "left" | "right" }) {
   return (
     <span
       aria-hidden
       data-motion-decorative="true"
-      className="inline-block h-[0.3cqw] w-[4cqw] shrink-0 overflow-hidden rounded-full bg-[rgba(146,170,200,.25)]"
+      className="mt-[1.2cqw] block h-[0.18cqw] w-full overflow-hidden rounded-full bg-[rgba(53,214,240,.16)]"
+    >
+      <span
+        className="block h-full w-[42%]"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, rgba(53,214,240,.9), transparent)",
+          animation: `scan-line ${side === "left" ? "5.5s" : "7s"} ease-in-out ${
+            side === "left" ? "0s" : "-2.4s"
+          } infinite`,
+        }}
+      />
+    </span>
+  );
+}
+
+function Eyebrow({
+  tone = "cyan",
+  children,
+  className = "",
+  style,
+}: {
+  tone?: "cyan" | "brand" | "warn" | "ok";
+  children: ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const color = {
+    cyan: "text-[#3ED8F0]",
+    brand: "text-[#FF9152]",
+    warn: "text-[#FBBF24]",
+    ok: "text-[#34D399]",
+  }[tone];
+  return (
+    <span
+      className={`text-led-meta flex items-center gap-[0.8cqw] font-mono tracking-[0.24em] uppercase ${color} ${className}`}
+      style={style}
+    >
+      {children}
+    </span>
+  );
+}
+
+function Headline({
+  children,
+  className = "",
+  style,
+}: {
+  children: ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <h1
+      // Bóng tối hẹp, không glow rộng: trên panel LED một vệt glow lớn biến chữ
+      // thành khối mờ. Việc cần là tách chữ khỏi KV, không phải phát sáng.
+      className={`display text-led-display text-[#F7FAFF] [text-shadow:0_0.1cqw_0.7cqw_rgba(4,9,20,.95)] ${className}`}
+      style={style}
+    >
+      {children}
+    </h1>
+  );
+}
+
+function Support({
+  children,
+  className = "",
+  style,
+}: {
+  children: ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <p className={`text-led-body text-[#B8C9DE] ${className}`} style={style}>
+      {children}
+    </p>
+  );
+}
+
+/**
+ * Dải dữ liệu cho state nhiều dòng: bảng trạng thái, tổng kết giải, xếp hạng.
+ *
+ * Không phải card kính. `backdrop-filter` buộc trình duyệt đọc lại pixel nền mỗi
+ * khung hình, mà nền LED luôn chuyển động — một card kính ở đây là một lần blur
+ * toàn vùng, 60 lần mỗi giây, ba tiếng liền. Và một hộp bo góc viền sáng đọc ra
+ * là thành phần giao diện web, không phải graphic phát sóng.
+ *
+ * Trên canvas ultra-wide dải này chiếm trọn lõi 70%, dùng hai cột khi số dòng
+ * vượt bốn — chiều cao khả dụng chỉ 944px, không đủ cho tám dòng xếp dọc ở cỡ
+ * `led-row`.
+ */
+function DataBand({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="led-band w-full py-[1.4cqw] pr-[2cqw] pl-[1.6cqw]">
+      <span className="text-led-meta mb-[1cqw] block font-mono tracking-[0.26em] text-[#3ED8F0] uppercase">
+        {title}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+/** Loader futuristic: một vệt quét chạy trong rãnh hẹp. Không spinner tròn. */
+function ScanLoader({ tone = "#3ED8F0" }: { tone?: string }) {
+  return (
+    <span
+      aria-hidden
+      data-motion-decorative="true"
+      className="inline-block h-[0.22cqw] w-[3cqw] shrink-0 overflow-hidden rounded-full bg-[rgba(146,170,200,.25)]"
     >
       <span
         className="block h-full w-[40%]"
@@ -518,28 +352,378 @@ export function ScanLoader({ tone = "#3ED8F0" }: { tone?: string }) {
   );
 }
 
+/* ═══ Chế độ A · theo dõi tiến độ ══════════════════════════════════════════ */
+
+/** Màn chờ. Dải trái giữ đầu cầu + ngày, lõi giữa giữ tagline. */
+export function LEDStandby({ location }: { location: LocationCode }) {
+  return (
+    <StageGrid
+      left={
+        <>
+          <RailLabel>{location}</RailLabel>
+          <RailLabel className="mt-[0.5cqw] text-[#3ED8F0]">
+            {EVENT_DATE[location]}
+          </RailLabel>
+          <RailTrail side="left" />
+        </>
+      }
+      right={
+        <>
+          <RailLabel>Aha Got Talent 2026</RailLabel>
+          <RailTrail side="right" />
+        </>
+      }
+    >
+      {/* KV đã in sẵn logo Ahamove, badge 11 năm và headline — không lặp lại */}
+      <div className="flex flex-col items-center text-center">
+        <Eyebrow
+          tone="cyan"
+          className="anim-enter-up justify-center"
+          style={stagger(0, 0, 140)}
+        >
+          Sinh nhật Ahamove 11 tuổi
+        </Eyebrow>
+
+        {/* Light sweep chạy qua tagline. `overflow-hidden` giữ vệt sáng trong khung
+            chữ; chữ nằm ở z cao hơn nên không bao giờ bị vệt che.
+
+            Đây là animation lặp duy nhất của standby, và standby là state chạy lâu
+            nhất trong đêm — trước giờ mở màn có thể bốn mươi phút. */}
+        <span
+          className="anim-enter-up relative mt-[1cqw] inline-block overflow-hidden"
+          style={stagger(0, 0, 300)}
+        >
+          <span className="display text-led-display relative z-10 tracking-[0.04em] text-[#FF9152] [text-shadow:0_0.1cqw_0.8cqw_rgba(4,9,20,.95)]">
+            Unlock Your Next Move
+          </span>
+          <span
+            aria-hidden
+            data-motion-decorative="true"
+            className="absolute inset-y-0 left-0 z-20 w-[18%]"
+            style={{
+              background:
+                "linear-gradient(100deg, transparent 0%, rgba(255,255,255,.42) 50%, transparent 100%)",
+              animation: "light-sweep 6.5s ease-in-out 1.4s infinite",
+            }}
+          />
+        </span>
+      </div>
+    </StageGrid>
+  );
+}
+
+export function LEDInterlude({
+  next,
+  prepMinutes,
+}: {
+  next: Performance;
+  prepMinutes?: number;
+}) {
+  return (
+    <StageGrid
+      left={
+        <>
+          <RailLabel>Tiếp theo</RailLabel>
+          <RailTrail side="left" />
+        </>
+      }
+      right={
+        prepMinutes ? (
+          <>
+            <RailLabel>Chuẩn bị</RailLabel>
+            <span className="display tnum text-led-title mt-[0.3cqw] text-[#FF9152]">
+              {prepMinutes}
+              <span className="text-led-body ml-[0.5cqw]">phút</span>
+            </span>
+          </>
+        ) : null
+      }
+    >
+      {/* Số thứ tự nằm CẠNH tên, không nằm trên: khung ultra-wide có bề ngang để
+          làm việc đó, và một dòng đọc nhanh hơn hai dòng. */}
+      <div className="flex items-baseline gap-[1.6cqw]">
+        <span
+          className="anim-enter-left display tnum text-led-hero shrink-0 leading-none text-[#FF9152]"
+          style={stagger(0, 0, 120)}
+        >
+          {orderLabel(next)}
+        </span>
+        <div className="min-w-0">
+          <Eyebrow tone="cyan" className="anim-enter-left" style={stagger(0, 0, 60)}>
+            Tiết mục tiếp theo
+          </Eyebrow>
+          <Headline
+            className="anim-enter-left mt-[0.4cqw]"
+            style={stagger(0, 0, 200)}
+          >
+            {next.performanceName}
+          </Headline>
+          <Support
+            className="anim-enter-up mt-[0.5cqw] font-mono tracking-[0.1em] uppercase"
+            style={stagger(0, 0, 380)}
+          >
+            {[next.performanceType, teamLabel(next)].filter(Boolean).join(" · ")}
+          </Support>
+        </div>
+      </div>
+    </StageGrid>
+  );
+}
+
+/**
+ * Tiết mục đang diễn. Chuỗi vào ~760ms, trong khoảng 600–900ms của brief.
+ */
+export function LEDPerformance({ performance }: { performance: Performance }) {
+  return (
+    <StageGrid
+      left={
+        <>
+          <RailLabel className="text-[#FF9152]">Đang biểu diễn</RailLabel>
+          <RailTrail side="left" />
+        </>
+      }
+      right={
+        <>
+          <RailLabel>{performance.department || "Aha Got Talent"}</RailLabel>
+          <RailTrail side="right" />
+        </>
+      }
+    >
+      <div className="flex items-baseline gap-[1.6cqw]">
+        <span
+          className="anim-enter-left display tnum text-led-hero shrink-0 leading-none text-[#FF9152]"
+          style={stagger(0, 0, 120)}
+        >
+          {orderLabel(performance)}
+        </span>
+        <div className="min-w-0">
+          <Eyebrow
+            tone="brand"
+            className="anim-enter-left"
+            style={stagger(0, 0, 60)}
+          >
+            <span
+              aria-hidden
+              data-motion-decorative="true"
+              className="inline-block size-[0.7cqw] shrink-0 rounded-full bg-current"
+              style={{ animation: "badge-breathe 2.2s ease-in-out infinite" }}
+            />
+            Đang biểu diễn
+          </Eyebrow>
+
+          {/* Tên tiết mục là thông tin duy nhất khán giả cần lúc này */}
+          <Headline
+            className="anim-enter-left mt-[0.4cqw]"
+            style={stagger(0, 0, 220)}
+          >
+            {performance.performanceName}
+          </Headline>
+
+          <Support
+            className="anim-enter-up mt-[0.5cqw] font-mono tracking-[0.1em] uppercase"
+            style={stagger(0, 0, 420)}
+          >
+            {[performance.performanceType, teamLabel(performance)]
+              .filter(Boolean)
+              .join(" · ")}
+          </Support>
+        </div>
+      </div>
+    </StageGrid>
+  );
+}
+
+/**
+ * Chấm điểm trực tiếp — state chạy lâu nhất trong đêm.
+ *
+ * Bố cục ngang: con số tiến độ nằm bên phải tên tiết mục, không nằm dưới. Trên
+ * canvas 944px chiều cao khả dụng, xếp dọc bốn phần tử ở thang chữ này sẽ trào.
+ */
+export function LEDJudging({
+  performance,
+  done,
+  total,
+}: {
+  performance: Performance;
+  done: number;
+  total: number;
+}) {
+  const pct = total ? (done / total) * 100 : 0;
+  const complete = done >= total && total > 0;
+  return (
+    <div className="relative h-full">
+      {/* Mỗi lần `done` tăng: một nhịp năng lượng chạy đúng một lần rồi tắt. */}
+      <EnergyPulse trigger={done} />
+
+      <StageGrid
+        left={
+          <>
+            <RailLabel className="text-[#3ED8F0]">Đang chấm điểm</RailLabel>
+            <RailTrail side="left" />
+          </>
+        }
+        right={
+          <>
+            <RailLabel>Tiết mục {orderLabel(performance)}</RailLabel>
+            <RailTrail side="right" />
+          </>
+        }
+      >
+        <div className="flex items-center gap-[3cqw]">
+          {/* Cột chữ */}
+          <div className="min-w-0 flex-1">
+            <Eyebrow tone="cyan">
+              <span
+                aria-hidden
+                data-motion-decorative="true"
+                className="size-[0.8cqw] shrink-0 rounded-full bg-current"
+                style={{ animation: "pulse-soft 1.8s ease-in-out infinite" }}
+              />
+              Ban Giám khảo đang chấm điểm
+            </Eyebrow>
+            <p className="display text-led-title mt-[0.5cqw] truncate text-[#DCE7F5]">
+              {performance.performanceName}
+            </p>
+            <AnimatedProgress
+              value={pct}
+              tone={complete ? "ok" : "cyan"}
+              className="mt-[1.2cqw] h-[0.6cqw] w-full"
+              label={`${done} trên ${total} giám khảo đã gửi điểm`}
+            />
+          </div>
+
+          {/*
+            Con số CHÍNH LÀ nội dung, nên nó được cỡ metric và đứng riêng một cột.
+            Chỉ con số đếm — không tên BGK nào chưa chấm, không điểm, không thứ hạng.
+          */}
+          <div className="shrink-0 text-right">
+            <p
+              className={`display tnum text-led-metric leading-[0.82] ${
+                complete ? "text-[#34D399]" : "text-[#3ED8F0]"
+              }`}
+            >
+              <AnimatedCounter value={done} />
+              <span className="text-[#6B819C]">/{total}</span>
+            </p>
+            <span className="text-led-meta mt-[0.3cqw] block font-mono tracking-[0.2em] text-[#B8C9DE] uppercase">
+              BGK đã hoàn tất
+            </span>
+          </div>
+        </div>
+      </StageGrid>
+    </div>
+  );
+}
+
+/** Thiếu BGK: KHÔNG được hiện "Đã hoàn tất", và không lộ lý do thiếu. */
+export function LEDWaiting({ performance }: { performance: Performance }) {
+  return (
+    <StageGrid
+      left={
+        <>
+          <RailLabel className="text-[#FBBF24]">Đang chờ</RailLabel>
+          <RailTrail side="left" />
+        </>
+      }
+      right={
+        <>
+          <RailLabel>Tiết mục {orderLabel(performance)}</RailLabel>
+          <RailTrail side="right" />
+        </>
+      }
+    >
+      <div className="flex flex-col">
+        <Eyebrow tone="warn" className="anim-enter-left" style={stagger(0, 0, 60)}>
+          <ScanLoader tone="#FBBF24" />
+          Đang chờ hoàn tất chấm điểm
+        </Eyebrow>
+        <Headline className="anim-enter-left mt-[0.5cqw]" style={stagger(0, 0, 220)}>
+          {performance.performanceName}
+        </Headline>
+        <Support className="anim-enter-up mt-[0.6cqw]" style={stagger(0, 0, 400)}>
+          Ban Tổ chức đang xác nhận kết quả.
+        </Support>
+      </div>
+    </StageGrid>
+  );
+}
+
+/**
+ * Cao trào của một tiết mục: check được vẽ ra, headline vào. Tổng ~1.35s.
+ */
+export function LEDCompleted({ performance }: { performance: Performance }) {
+  return (
+    <StageGrid
+      left={
+        <>
+          <RailLabel className="text-[#34D399]">Hoàn tất</RailLabel>
+          <RailTrail side="left" />
+        </>
+      }
+      right={
+        <>
+          <RailLabel>Tiết mục {orderLabel(performance)}</RailLabel>
+          <RailTrail side="right" />
+        </>
+      }
+    >
+      <div className="flex items-center gap-[2cqw]">
+        <CheckReveal size="7cqw" delay={220} />
+        <div className="min-w-0">
+          <Headline className="anim-enter-up" style={stagger(0, 0, 620)}>
+            Đã hoàn tất chấm điểm
+          </Headline>
+          <Support
+            className="anim-enter-up mt-[0.5cqw] font-mono tracking-[0.12em] uppercase"
+            style={stagger(0, 0, 860)}
+          >
+            {performance.performanceName}
+          </Support>
+          <Support
+            className="anim-enter-up mt-[0.3cqw] text-[#8FA3BC]"
+            style={stagger(0, 0, 1060)}
+          >
+            Điểm số đã được ghi nhận và sẽ được công bố vào cuối chương trình.
+          </Support>
+        </div>
+      </div>
+    </StageGrid>
+  );
+}
+
+/**
+ * Sáu nhãn trạng thái hợp lệ. Màu là kênh phân biệt chính, không phải chữ: đọc
+ * từ cuối hội trường thì màu tới trước, chữ tới sau.
+ */
 const STATUS_TONE: Record<string, string> = {
-  "Chưa biểu diễn": "text-[#6B819C]",
-  "Đang biểu diễn": "text-[#FF7F32]",
+  "Chưa biểu diễn": "text-[#7E93AE]",
+  "Đang biểu diễn": "text-[#FF9152]",
   "BGK đang chấm": "text-[#3ED8F0]",
   "Đã chấm xong": "text-[#34D399]",
   "Chờ bổ sung điểm": "text-[#FBBF24]",
   "Điểm đã được BTC xác nhận": "text-[#A78BFA]",
 };
 
-/** Bảng tổng trạng thái. Sáu nhãn hợp lệ, KHÔNG có điểm và KHÔNG có xếp hạng. */
+/**
+ * Bảng tổng trạng thái. Sáu nhãn hợp lệ, KHÔNG có điểm và KHÔNG có xếp hạng.
+ *
+ * HAI CỘT trên canvas ultra-wide. Chiều cao khả dụng là 944px; ở cỡ `led-row`
+ * (48px) mỗi dòng chiếm ~90px, nên tám dòng xếp dọc cần 720px cộng tiêu đề —
+ * vừa đủ nhưng không còn chỗ thở. Chia hai cột dùng đúng thứ khung này có nhiều:
+ * bề ngang.
+ */
 export function LEDAllStatus({
   rows,
 }: {
   rows: { performance: Performance; status: string }[];
 }) {
   return (
-    <LEDPanel>
-      <div className="flex flex-col gap-[1.2cqw]">
-      <span className="text-[1.4cqw] font-mono tracking-[0.28em] text-[#3ED8F0] uppercase">
-        Tiến độ chấm điểm
-      </span>
-      <ul className="flex w-[64cqw] max-w-full flex-col">
+    <DataBand title="Tiến độ chấm điểm">
+      <ul
+        className={`grid w-full gap-x-[3cqw] ${
+          rows.length > 4 ? "grid-cols-2" : "grid-cols-1"
+        }`}
+      >
         {rows.map(({ performance: p, status }, i) => {
           const done = status === "Đã chấm xong";
           const judging = status === "BGK đang chấm";
@@ -548,31 +732,30 @@ export function LEDAllStatus({
               key={p.registrationCode}
               // Vào lần lượt, mỗi dòng cách nhau 70ms. Sau khi vào thì đứng yên:
               // một bảng có mọi dòng chuyển động liên tục là bảng không đọc được.
-              className="anim-enter-up grid grid-cols-[8%_1fr_34%] items-baseline gap-[1cqw] border-b border-[rgba(146,170,200,.18)] py-[0.7cqw]"
+              className="anim-enter-up led-rule grid grid-cols-[6%_1fr_34%] items-center gap-[1cqw] py-[0.55cqw]"
               style={stagger(i, 70, 100)}
             >
-              <span className="tnum font-mono text-[1.6cqw] text-[#FF7F32]">
+              <span className="tnum text-led-row font-mono text-[#FF9152]">
                 {orderLabel(p)}
               </span>
-              <span className="truncate text-[1.6cqw] text-[#DCE7F5]">
+              <span className="text-led-row truncate text-[#EAF1FB]">
                 {p.performanceName}
               </span>
               <span
-                className={`flex items-center justify-end gap-[0.6cqw] text-right font-mono text-[1.3cqw] tracking-[0.1em] uppercase ${STATUS_TONE[status] ?? "text-[#C6D4E6]"}`}
+                className={`text-led-meta flex items-center justify-end gap-[0.5cqw] text-right ${
+                  STATUS_TONE[status] ?? "text-[#B8C9DE]"
+                }`}
               >
                 {judging ? (
                   <span
                     aria-hidden
                     data-motion-decorative="true"
-                    className="inline-block size-[0.8cqw] shrink-0 rounded-full bg-current"
+                    className="inline-block size-[0.6cqw] shrink-0 rounded-full bg-current"
                     style={{ animation: "pulse-soft 1.8s ease-in-out infinite" }}
                   />
                 ) : null}
                 {done ? (
-                  <span
-                    aria-hidden
-                    className="inline-block shrink-0 text-[1.2cqw] [text-shadow:0_0_10px_rgba(52,211,153,.9)]"
-                  >
+                  <span aria-hidden className="inline-block shrink-0">
                     ✓
                   </span>
                 ) : null}
@@ -582,116 +765,32 @@ export function LEDAllStatus({
           );
         })}
       </ul>
-    </div>
-    </LEDPanel>
+    </DataBand>
   );
 }
 
 export function LEDAllCompleted() {
   return (
-    <BottomBand>
-      <span className="flex items-center gap-[1.2cqw]">
-        <CheckReveal size="4cqw" delay={160} />
-        <span
-          className="anim-enter-up display text-[3.6cqw] text-[#F2F7FF]"
-          style={stagger(0, 0, 560)}
-        >
-          Tất cả tiết mục đã hoàn tất chấm điểm
-        </span>
-      </span>
-      <p
-        className="anim-enter-up text-[1.6cqw] text-[#8FA3BC]"
-        style={stagger(0, 0, 820)}
-      >
-        Ban Tổ chức đang chuẩn bị công bố kết quả.
-      </p>
-    </BottomBand>
-  );
-}
-
-/* ═══ Bình chọn khán giả ═══════════════════════════════════════════════════ */
-
-export function LEDVoteIntro({ awardName }: { awardName: string }) {
-  return (
-    <BottomBand>
-      <AwardName>{awardName}</AwardName>
-      <h1 className="display text-[4cqw] text-[#F2F7FF]">
-        Bình chọn tiết mục bạn yêu thích
-      </h1>
-      <p className="text-[1.6cqw] text-[#C6D4E6]">
-        Mỗi khán giả có tối đa 2 phiếu, cho hai tiết mục khác nhau.
-      </p>
-    </BottomBand>
-  );
-}
-
-export function LEDVoteQR({ voteUrl }: { voteUrl: string }) {
-  return (
-    <BottomBand>
-      <span className="text-[1.5cqw] font-mono tracking-[0.28em] text-[#3ED8F0] uppercase">
-        Bình chọn sắp bắt đầu
-      </span>
-      <div className="flex items-center gap-[2.4cqw]">
-        <QRPanel size="lg" />
+    <StageGrid
+      left={
+        <>
+          <RailLabel className="text-[#34D399]">Hoàn tất</RailLabel>
+          <RailTrail side="left" />
+        </>
+      }
+    >
+      <div className="flex items-center justify-center gap-[2cqw] text-center">
+        <CheckReveal size="7cqw" delay={160} />
         <div>
-          <h1 className="display text-[3.4cqw] text-[#F2F7FF]">
-            Quét QR và chọn
-            <br />
-            tối đa 2 tiết mục
-          </h1>
-          <p className="mt-[0.8cqw] border-b border-[rgba(62,216,240,.4)] pb-[0.4cqw] text-[1.8cqw] font-mono tracking-[0.08em] text-[#3ED8F0]">
-            {voteUrl}
-          </p>
+          <Headline className="anim-enter-up" style={stagger(0, 0, 560)}>
+            Tất cả tiết mục đã hoàn tất
+          </Headline>
+          <Support className="anim-enter-up mt-[0.6cqw]" style={stagger(0, 0, 820)}>
+            Ban Tổ chức đang chuẩn bị công bố kết quả.
+          </Support>
         </div>
       </div>
-    </BottomBand>
-  );
-}
-
-export function LEDVoteClosed() {
-  return (
-    <BottomBand>
-      <h1 className="display text-[4.4cqw] text-[#F2F7FF]">
-        Bình chọn đã kết thúc
-      </h1>
-      <p className="text-[1.6cqw] text-[#8FA3BC]">
-        Ban Tổ chức đang xác nhận kết quả.
-      </p>
-    </BottomBand>
-  );
-}
-
-export function LEDVoteVerification() {
-  return (
-    <BottomBand>
-      <span
-        aria-hidden
-        className="size-[1.6cqw] rounded-full bg-[#3ED8F0]"
-        style={{ animation: "pulse-soft 1.6s ease-in-out infinite" }}
-      />
-      <h1 className="display text-[4cqw] text-[#F2F7FF]">
-        Đang xác minh kết quả bình chọn
-      </h1>
-      <p className="text-[1.6cqw] text-[#8FA3BC]">
-        Vui lòng chờ trong giây lát.
-      </p>
-    </BottomBand>
-  );
-}
-
-export function LEDVoteReady() {
-  return (
-    <BottomBand>
-      <span className="flex items-center gap-[1.2cqw]">
-        <Check />
-        <span className="display text-[3.8cqw] text-[#F2F7FF]">
-          Kết quả đã được ghi nhận
-        </span>
-      </span>
-      <p className="text-[1.6cqw] text-[#8FA3BC]">
-        Tiết mục được khán giả yêu thích nhất sẽ sớm được công bố.
-      </p>
-    </BottomBand>
+    </StageGrid>
   );
 }
 
@@ -699,200 +798,138 @@ export function LEDVoteReady() {
 
 export function LEDAwardsIntro({ location }: { location: LocationCode }) {
   return (
-    <BottomBand>
-      <span className="text-[1.5cqw] font-mono tracking-[0.3em] text-[#3ED8F0] uppercase">
-        {location} · {EVENT_DATE[location]}
-      </span>
-      <h1 className="display text-[6cqw] text-[#F2F7FF]">Lễ trao giải</h1>
-      <p className="display text-[2.4cqw] tracking-[0.1em] text-[#FF7F32]">
-        Unlock Your Next Move
-      </p>
-    </BottomBand>
-  );
-}
-
-/** Bảng điểm: 5 dòng, font lớn. KHÔNG tên BGK, KHÔNG điểm từng BGK. */
-export function LEDScorecard({
-  awardName,
-  performance,
-  values,
-  total,
-}: {
-  awardName: string;
-  performance: Performance;
-  values: string[];
-  total: string;
-}) {
-  return (
-    <LEDPanel>
-      <div className="flex flex-col gap-[1cqw]">
-      <span className="text-[1.3cqw] font-mono tracking-[0.24em] text-[#FF7F32] uppercase">
-        {awardName} · {performance.performanceName}
-      </span>
-      <ul className="flex w-[62cqw] max-w-full flex-col">
-        <li className="grid grid-cols-[44%_18%_18%_20%] gap-[1cqw] border-b border-[rgba(146,170,200,.18)] py-[0.4cqw] font-mono text-[1cqw] tracking-[0.14em] text-[#7E93AE] uppercase">
-          <span>Tiêu chí</span>
-          <span className="text-right">Điểm TB</span>
-          <span className="text-right">Trọng số</span>
-          <span className="text-right">Quy đổi</span>
-        </li>
-        {CRITERIA.map((c, i) => (
-          <li
-            key={c.key}
-            className="tnum grid grid-cols-[44%_18%_18%_20%] gap-[1cqw] border-b border-[rgba(146,170,200,.14)] py-[0.45cqw] text-[1.5cqw] text-[#DCE7F5]"
-          >
-            <span>{c.label}</span>
-            <span className="text-right">{values[i]}</span>
-            <span className="text-right text-[#3ED8F0]">
-              {Math.round(c.weight * 100)}%
-            </span>
-            <span className="text-right text-[#FF7F32]">
-              {(Number(values[i]) * c.weight).toFixed(2)}
-            </span>
-          </li>
-        ))}
-      </ul>
-      <div className="flex items-baseline gap-[1.4cqw]">
-        <span className="display text-[1.8cqw] tracking-[0.12em] text-[#8FA3BC]">
-          Tổng điểm
-        </span>
-        <span className="display tnum text-[5cqw] leading-none text-[#FF7F32]">
-          {total}
-        </span>
-        <span className="display text-[1.6cqw] text-[#6B819C]">/ 100</span>
+    <StageGrid
+      left={
+        <>
+          <RailLabel>{location}</RailLabel>
+          <RailLabel className="mt-[0.5cqw] text-[#3ED8F0]">
+            {EVENT_DATE[location]}
+          </RailLabel>
+          <RailTrail side="left" />
+        </>
+      }
+      right={
+        <>
+          <RailLabel>Aha Got Talent 2026</RailLabel>
+          <RailTrail side="right" />
+        </>
+      }
+    >
+      <div className="flex flex-col items-center text-center">
+        <Eyebrow
+          tone="cyan"
+          className="anim-enter-fade justify-center"
+          style={stagger(0, 0, 100)}
+        >
+          Lễ trao giải
+        </Eyebrow>
+        <h1
+          className="anim-enter-up display text-led-hero mt-[0.6cqw] leading-[0.9] text-[#F7FAFF] [text-shadow:0_0.1cqw_0.9cqw_rgba(4,9,20,.95)]"
+          style={stagger(0, 0, 260)}
+        >
+          Công bố kết quả
+        </h1>
+        <p
+          className="anim-enter-up display text-led-title mt-[0.6cqw] tracking-[0.04em] text-[#FF9152]"
+          style={stagger(0, 0, 460)}
+        >
+          Unlock Your Next Move
+        </p>
       </div>
-    </div>
-    </LEDPanel>
+    </StageGrid>
   );
 }
 
-/** Voting Result Card — chỉ hiện khi Admin bật show_result_figures. */
-export function LEDVoteResult({
-  awardName,
-  performance,
-  participants,
-  totalVotes,
-  winnerVotes,
-}: {
-  awardName: string;
-  performance: Performance;
-  participants: number;
-  totalVotes: number;
-  winnerVotes: number;
-}) {
-  const rate = ((winnerVotes / participants) * 100).toFixed(2);
-  return (
-    <LEDPanel>
-      <div className="flex flex-col gap-[1cqw]">
-      <span className="text-[1.3cqw] font-mono tracking-[0.24em] text-[#FF7F32] uppercase">
-        {awardName} · {performance.performanceName}
-      </span>
-      <ul className="flex w-[46cqw] max-w-full flex-col">
-        {[
-          ["Khán giả tham gia", String(participants)],
-          ["Tổng phiếu hợp lệ", String(totalVotes)],
-          ["Phiếu của tiết mục chiến thắng", String(winnerVotes)],
-          ["Tỷ lệ khán giả lựa chọn", `${rate}%`],
-        ].map(([k, v]) => (
-          <li
-            key={k}
-            className="flex items-baseline justify-between gap-[1.6cqw] border-b border-[rgba(146,170,200,.16)] py-[0.6cqw] text-[1.7cqw] text-[#DCE7F5]"
-          >
-            <span>{k}</span>
-            <span className="tnum text-[#3ED8F0]">{v}</span>
-          </li>
-        ))}
-      </ul>
-      {/* Không có danh tính người bình chọn, không có bảng điểm BGK */}
-    </div>
-    </LEDPanel>
-  );
-}
-
-export function LEDCelebration({
-  awardName,
-  performance,
-}: {
-  awardName: string;
-  performance: Performance;
-}) {
-  return (
-    <BottomBand>
-      <AwardName>{awardName}</AwardName>
-      <h1 className="display text-[5.4cqw] text-[#F2F7FF]">
-        Chúc mừng {performance.performanceName}
-      </h1>
-      <p className="text-[1.6cqw] font-mono tracking-[0.14em] text-[#C6D4E6] uppercase">
-        {teamLabel(performance)} · {performance.department}
-      </p>
-    </BottomBand>
-  );
-}
-
+/**
+ * Màn tổng kết. Chỉ liệt kê giải ĐÃ công bố — không có chỗ cho giải sắp tới.
+ *
+ * Bốn giải, dàn NGANG thành bốn cột: khung ultra-wide cho mỗi giải 526px bề
+ * ngang trong lõi 70%, đủ cho tên giải trên nhãn và tên tiết mục dưới. Xếp dọc
+ * bốn dòng ở cỡ `led-title` sẽ vượt 944px chiều cao khả dụng.
+ */
 export function LEDAwardsSummary({
   rows,
 }: {
-  rows: { award: string; performance: string; figure: string }[];
+  rows: { nameVi: string; performanceName: string }[];
 }) {
+  if (rows.length === 0) {
+    return (
+      <StageGrid>
+        <Support className="text-center">Chưa có giải nào được công bố.</Support>
+      </StageGrid>
+    );
+  }
   return (
-    <LEDPanel>
-      <div className="flex flex-col gap-[1.2cqw]">
-      <span className="text-[1.4cqw] font-mono tracking-[0.28em] text-[#3ED8F0] uppercase">
-        Tổng kết giải thưởng
-      </span>
-      <ul className="flex w-[70cqw] max-w-full flex-col gap-[0.4cqw]">
-        {rows.map((r) => (
+    <StageGrid
+      left={
+        <>
+          <RailLabel className="text-[#FF9152]">Tổng kết</RailLabel>
+          <RailTrail side="left" />
+        </>
+      }
+    >
+      <ul
+        className="grid w-full items-start gap-[2cqw]"
+        style={{ gridTemplateColumns: `repeat(${Math.min(rows.length, 4)}, 1fr)` }}
+      >
+        {rows.map((r, i) => (
           <li
-            key={r.award}
-            className="grid grid-cols-[30%_1fr_20%] items-baseline gap-[1.4cqw] border-b border-[rgba(146,170,200,.16)] pb-[0.7cqw]"
+            key={r.nameVi}
+            className="anim-enter-up flex flex-col border-t-[0.2cqw] border-[#FF9152] pt-[1cqw]"
+            style={stagger(i, 180, 200)}
           >
-            <span className="font-mono text-[1.2cqw] tracking-[0.16em] text-[#FF7F32] uppercase">
-              {r.award}
+            <span className="text-led-meta font-mono tracking-[0.18em] text-[#FF9152] uppercase">
+              {r.nameVi}
             </span>
-            <span className="display truncate text-[2.1cqw] text-[#EDF3FB]">
-              {r.performance}
-            </span>
-            <span className="display tnum text-right text-[2cqw] text-[#3ED8F0]">
-              {r.figure}
+            <span className="display text-led-title mt-[0.5cqw] text-[#F7FAFF]">
+              {r.performanceName}
             </span>
           </li>
         ))}
       </ul>
-    </div>
-    </LEDPanel>
+    </StageGrid>
   );
 }
 
+/**
+ * Bảng xếp hạng đầy đủ.
+ *
+ * CHƯA NỐI VÀO ADMIN: `full_ranking` có trong `LEDMode` nhưng LiveScreen không
+ * dựng nó và Live Control không có nút bật. Component để ở đây vì nó thuộc design
+ * system của màn LED và duyệt được qua harness `/motion`.
+ *
+ * Không điểm từng BGK, không email, không nhận xét.
+ */
 export function LEDFullRanking({
   rows,
 }: {
   rows: { rank: string; name: string; total: string; award?: string }[];
 }) {
   return (
-    <LEDPanel>
-      <div className="flex flex-col gap-[1.2cqw]">
-      <span className="text-[1.4cqw] font-mono tracking-[0.28em] text-[#3ED8F0] uppercase">
-        Bảng xếp hạng
-      </span>
-      <ul className="flex w-[66cqw] max-w-full flex-col">
+    <DataBand title="Bảng xếp hạng">
+      <ul
+        className={`grid w-full gap-x-[3cqw] ${
+          rows.length > 4 ? "grid-cols-2" : "grid-cols-1"
+        }`}
+      >
         {rows.map((r) => (
           <li
             key={r.name}
-            className="grid grid-cols-[9%_1fr_34%] items-baseline gap-[1cqw] border-b border-[rgba(146,170,200,.16)] py-[0.6cqw]"
+            className="led-rule grid grid-cols-[7%_1fr_26%] items-center gap-[1cqw] py-[0.55cqw]"
           >
-            <span className="tnum font-mono text-[1.7cqw] text-[#FF7F32]">
-              {r.rank}
-            </span>
-            <span className="truncate text-[1.7cqw] text-[#DCE7F5]">{r.name}</span>
-            <span className="tnum text-right font-mono text-[1.4cqw] tracking-[0.08em] text-[#C6D4E6] uppercase">
+            <span className="tnum display text-led-row text-[#FF9152]">{r.rank}</span>
+            <span className="text-led-row truncate text-[#EAF1FB]">{r.name}</span>
+            <span className="tnum text-led-row text-right text-[#3ED8F0]">
               {r.total}
-              {r.award ? ` · ${r.award}` : ""}
+              {r.award ? (
+                <span className="text-led-meta block font-mono tracking-[0.14em] text-[#8FA3BC] uppercase">
+                  {r.award}
+                </span>
+              ) : null}
             </span>
           </li>
         ))}
       </ul>
-      {/* Không điểm từng BGK, không email, không nhận xét */}
-    </div>
-    </LEDPanel>
+    </DataBand>
   );
 }

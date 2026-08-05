@@ -10,6 +10,8 @@ import {
   LEDCompleted,
   LEDAllStatus,
   LEDAllCompleted,
+  LEDAwardsIntro,
+  LEDAwardsSummary,
 } from "@/components/led/LEDStage";
 import { MotionRoot } from "@/components/motion/MotionRoot";
 import { LEDStateTransition } from "@/components/motion/primitives";
@@ -50,10 +52,13 @@ export function LiveScreen({
   initial,
   debug = false,
   motionDebug = false,
+  framePreview = false,
 }: {
   initial: LedSnapshot;
   debug?: boolean;
   motionDebug?: boolean;
+  /** `?frame=1` ở development: bọc khung trong hộp 3008×1088 đã thu nhỏ. */
+  framePreview?: boolean;
 }) {
   const { data, connection, lastUpdate } = useSnapshot<LedSnapshot>(
     `/api/led/${initial.location.toLowerCase()}/stream`,
@@ -102,8 +107,8 @@ export function LiveScreen({
     effective === "awards_intro" ||
     effective === "awards_summary";
 
-  return (
-    <MotionRoot debug={motionDebug}>
+  const stage = (
+    <>
       {/*
         MỘT `LEDStage` duy nhất cho mọi state, kể cả Emergency Hide. Nếu tách
         thành hai nhánh return khác nhau, React sẽ dựng lại cả cây và KV phải
@@ -171,7 +176,7 @@ export function LiveScreen({
 
               {/* ── Công bố giải ───────────────────────────────────────── */}
               {effective === "awards_intro" ? (
-                <AwardsIntro location={data.location} />
+                <LEDAwardsIntro location={data.location} />
               ) : null}
 
               {/* Shuffle: KHÔNG nhận award, KHÔNG nhận winner. Chỉ là các card
@@ -202,7 +207,7 @@ export function LiveScreen({
               ) : null}
 
               {effective === "awards_summary" ? (
-                <AwardsSummary rows={data.publishedAwards} />
+                <LEDAwardsSummary rows={data.publishedAwards} />
               ) : null}
             </div>
           )}
@@ -220,64 +225,12 @@ export function LiveScreen({
   );
 }
 
-function AwardsIntro({ location }: { location: string }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-[1.2cqw]">
-      <span
-        className="anim-enter-fade text-[1.5cqw] font-mono tracking-[0.3em] text-[#3ED8F0] uppercase"
-        style={{ animationDelay: "100ms" }}
-      >
-        {location} · Aha Got Talent 2026
-      </span>
-      <h1
-        className="anim-enter-up display text-[5.2cqw] text-[#F2F7FF]"
-        style={{ animationDelay: "260ms" }}
-      >
-        Công bố kết quả
-      </h1>
-      <p
-        className="anim-enter-up text-[1.6cqw] text-[#8FA3BC]"
-        style={{ animationDelay: "460ms" }}
-      >
-        Cảm ơn toàn bộ tiết mục đã mang tới một đêm bứt phá.
-      </p>
-    </div>
-  );
-}
-
-/** Màn tổng kết. Chỉ liệt kê giải ĐÃ công bố — không có chỗ cho giải sắp tới. */
-function AwardsSummary({
-  rows,
-}: {
-  rows: { nameVi: string; performanceName: string }[];
-}) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-[1.4cqw]">
-      <span className="anim-enter-fade text-[1.4cqw] font-mono tracking-[0.3em] text-[#FF7F32] uppercase">
-        Tổng kết giải thưởng
-      </span>
-      <ul className="flex w-[62cqw] max-w-full flex-col">
-        {rows.map((r, i) => (
-          <li
-            key={r.nameVi}
-            className="anim-enter-up grid grid-cols-[36%_1fr] items-baseline gap-[1.4cqw] border-b border-[rgba(146,170,200,.2)] py-[0.9cqw]"
-            style={{ animationDelay: `${200 + i * 180}ms` }}
-          >
-            <span className="text-[1.5cqw] font-mono tracking-[0.14em] text-[#3ED8F0] uppercase">
-              {r.nameVi}
-            </span>
-            <span className="display text-[2.4cqw] text-[#F2F7FF]">
-              {r.performanceName}
-            </span>
-          </li>
-        ))}
-      </ul>
-      {rows.length === 0 ? (
-        <p className="text-[1.5cqw] text-[#8FA3BC]">Chưa có giải nào được công bố.</p>
-      ) : null}
-    </div>
-  );
-}
+/*
+  `AwardsIntro` và `AwardsSummary` từng là hai component cục bộ ở đây, dựng cùng
+  hai state mà LEDStage cũng có component cho. Hai bản thiết kế khác nhau cho
+  cùng một state là cách chắc chắn nhất để màn sân khấu lệch nhau — nên giờ dùng
+  `LEDAwardsIntro` và `LEDAwardsSummary` từ design system.
+*/
 
 /** Chỉ tồn tại khi mở LED với `?debug=1`. Không bao giờ lên máy chiếu. */
 function DebugBadge({

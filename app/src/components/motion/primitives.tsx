@@ -259,7 +259,9 @@ export function EnergyPulse({ trigger }: { trigger: number | string }) {
 export function MotionSafeQR({
   children,
   caption,
-  size = "22cqw",
+  // 12cqw = 361px trên canvas 3008×1088. Bản 16:9 dùng 22cqw; trên khung
+  // ultra-wide con số đó ra 662px và chiếm gần trọn 944px chiều cao khả dụng.
+  size = "12cqw",
 }: {
   children?: ReactNode;
   caption?: string;
@@ -279,8 +281,10 @@ export function MotionSafeQR({
       >
         {children ?? <QRPlaceholder />}
       </div>
+      {/* Caption là URL để gõ tay khi máy không quét được QR, nên nó phải đọc
+          được từ chỗ ngồi — cỡ meta (40px @1920), không phải 1.1cqw (21px). */}
       {caption ? (
-        <span className="tnum font-mono text-[1.1cqw] tracking-[0.08em] text-[#060d1e]">
+        <span className="tnum text-led-meta font-mono tracking-[0.04em] text-[#060d1e]">
           {caption}
         </span>
       ) : null}

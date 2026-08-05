@@ -36,21 +36,14 @@
   }
 }
 
-/* ── Blue energy glow — trôi và thở ─────────────────────────────────────── */
-@keyframes glow-drift {
-  0% {
-    transform: translate3d(-3%, 2%, 0) scale(1);
-    opacity: 0.28;
-  }
-  50% {
-    transform: translate3d(3%, -2%, 0) scale(1.12);
-    opacity: 0.5;
-  }
-  100% {
-    transform: translate3d(-3%, 2%, 0) scale(1);
-    opacity: 0.28;
-  }
-}
+/*
+  `glow-drift` đã bị bỏ cùng với hai quầng blur mà nó điều khiển.
+
+  Nó animate transform VÀ opacity trên hai lớp `filter: blur(28–32px)` rộng
+  gần nửa khung. Blur là paint, nên mỗi khung hình GPU phải tổng hợp lại vùng
+  mờ đó — lớp đắt nhất của bản trước. Quầng sáng giờ là radial-gradient tĩnh
+  trong AmbientGlow, biên đã mềm sẵn nên không cần blur.
+*/
 
 /* ── Orange light trail — chạy ngang dải thấp ───────────────────────────── */
 @keyframes trail-run {
@@ -88,15 +81,16 @@
   }
 }
 
-/* ── Fine grid — drift rất nhẹ, gần như tĩnh ────────────────────────────── */
-@keyframes grid-drift {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 64px 64px;
-  }
-}
+/*
+  `grid-drift` đã bị bỏ.
+
+  Nó animate `background-position`, và đó là thuộc tính PAINT — không phải
+  compositor. Mỗi khung hình trình duyệt phải vẽ lại lưới trên toàn bộ khung
+  1920×1080, việc mà luật số 3 ở đầu file này cấm. Chuyển động thu được gần như
+  không thấy được; chi phí thì là một lần repaint toàn màn hình mỗi frame.
+
+  Lưới giờ là lớp tĩnh trong AnimatedCampaignBackground.
+*/
 
 /* ── Light sweep qua headline ───────────────────────────────────────────── */
 @keyframes light-sweep {
@@ -362,11 +356,29 @@
    Tiện ích
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/*
+  Lớp nền phủ khung. KHÔNG đặt `will-change` ở đây.
+
+  Bản trước đặt `will-change: transform, opacity` cho mọi lớp dùng utility này.
+  Có bảy lớp phủ toàn khung, nên trình duyệt phải giữ bảy texture toàn màn hình
+  trên GPU vĩnh viễn — kể cả những lớp tĩnh hoàn toàn như vignette. Trên máy
+  phát LED bộ nhớ video ít, đó chính là nguồn giật.
+
+  `will-change` chỉ dành cho lớp thật sự animate transform, và khai báo tại
+  chỗ đó — xem `motion-layer-gpu`.
+*/
 @utility motion-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  will-change: transform, opacity;
+}
+
+/* Chỉ cho lớp có animation transform chạy liên tục. Dùng tiết kiệm. */
+@utility motion-layer-gpu {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform;
 }
 
 /* Xuất hiện — LUÔN kèm `both` để nội dung không bao giờ kẹt ở opacity 0. */

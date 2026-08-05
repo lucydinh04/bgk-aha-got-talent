@@ -25,12 +25,21 @@ export default async function LivePage(props: PageProps<"/live/[location]">) {
   const debug = search.debug === "1";
   // Panel motion debug chỉ dựng ở development — MotionRoot chặn lần nữa ở client.
   const motionDebug = search.motionDebug === "true";
+  /*
+    `?frame=1` dựng canvas ở đúng 3008×1088 rồi thu nhỏ để lọt màn hình — dùng
+    khi cần đo cỡ chữ thật bằng devtools. Chặn ở production: máy phát LED ngoài
+    hội trường phải luôn nhận khung tràn viền, và một cờ query gõ nhầm không được
+    phép biến màn sân khấu thành ảnh preview có viền.
+  */
+  const framePreview =
+    search.frame === "1" && process.env.NODE_ENV !== "production";
 
   return (
     <LiveScreen
       initial={buildLedSnapshot(location)}
       debug={debug}
       motionDebug={motionDebug}
+      framePreview={framePreview}
     />
   );
 }

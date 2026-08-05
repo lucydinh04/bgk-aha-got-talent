@@ -39,6 +39,44 @@
   --color-warn: #fbbf24;
   --color-danger: #f87171;
   --color-locked: #a78bfa;
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     MÀN LED VẬT LÝ — 3008 × 1088, tỉ lệ 2.765:1
+
+     Mọi đơn vị dưới đây là `cqw` của khung LED, KHÔNG phải vw. Khung khai báo
+     `@container`, nên 1cqw = 1% bề rộng khung = 30.08px trên canvas thật. Cỡ chữ
+     vì thế không đổi khi trình duyệt chạy ở độ phân giải khác — 1920×695 hay
+     3008×1088 đều cho cùng bố cục, chỉ khác số pixel.
+
+     Số px trong ngoặc tính ở canvas 3008 rộng.
+
+     SÀN 30px: `led-meta` = 34px, không có gì trên màn này được nhỏ hơn.
+     Ngưỡng đọc từ xa ≈ khoảng cách ÷ 250.
+     ═════════════════════════════════════════════════════════════════════════ */
+
+  /* nhãn, eyebrow, đơn vị — SÀN */
+  --text-led-meta: 1.13cqw; /* 34px */
+  /* câu giải thích, dòng phụ */
+  --text-led-body: 1.33cqw; /* 40px */
+  /* một dòng dữ liệu trong bảng */
+  --text-led-row: 1.6cqw; /* 48px */
+  /* tiêu đề phụ, tên tiết mục ở state nhiều dữ liệu */
+  --text-led-title: 3.19cqw; /* 96px */
+  /* headline chính — tên tiết mục đang diễn */
+  --text-led-display: 4.39cqw; /* 132px */
+  /* tên người thắng — chữ to nhất màn này bao giờ hiện */
+  --text-led-hero: 6.65cqw; /* 200px */
+  /* con số điểm / tiến độ */
+  --text-led-metric: 5.59cqw; /* 168px */
+  /* đồng hồ đếm ngược */
+  --text-led-countdown: 7.18cqw; /* 216px */
+
+  /* ── Safe zone ────────────────────────────────────────────────────────────
+     120px ngang, 72px dọc trên canvas 3008×1088. Cả hai quy về cqw vì padding
+     tính theo phần trăm CSS luôn lấy mốc là BỀ RỘNG, nên 72px dọc không phải
+     72/1088 mà là 72/3008. */
+  --led-safe-x: 3.989cqw; /* 120px */
+  --led-safe-y: 2.394cqw; /* 72px */
 }
 
 @layer base {
@@ -109,6 +147,47 @@
 
 @utility tnum {
   font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Dải dữ liệu của màn LED.
+
+   Thay cho card kính: `backdrop-filter` buộc trình duyệt đọc lại pixel nền cho
+   MỖI khung hình, và nền LED thì luôn chuyển động — nên một card kính trên màn
+   này là một lần blur toàn vùng, 60 lần mỗi giây, suốt ba tiếng. Nền đặc cho
+   cùng độ tương phản với chi phí bằng không.
+
+   Không bo góc lớn, không viền sáng: đây là dải thông tin sân khấu, không phải
+   thành phần giao diện web.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* Safe zone của canvas LED: 120px ngang, 72px dọc ở 3008×1088. Mọi chữ và logo
+   quan trọng phải nằm trong vùng này — panel LED thường bị khung nhôm hoặc mép
+   ghép ăn vào vài chục pixel ngoài cùng. */
+@utility led-safe {
+  padding-inline: var(--led-safe-x);
+  padding-block: var(--led-safe-y);
+}
+
+/* Vùng ưu tiên: 70% giữa canvas. Chữ chính nằm trong đây, hai dải mép rộng
+   (15% mỗi bên = 451px) để cho không khí, light trail và nhãn phụ. */
+@utility led-core {
+  width: 70%;
+  margin-inline: auto;
+}
+
+@utility led-band {
+  background: linear-gradient(
+    to right,
+    rgba(4, 9, 20, 0.94) 0%,
+    rgba(4, 9, 20, 0.88) 72%,
+    rgba(4, 9, 20, 0.72) 100%
+  );
+  border-left: 0.35cqw solid var(--color-brand);
+}
+
+/* Gạch chân mảnh giữa các dòng dữ liệu — thay cho viền hộp bao quanh. */
+@utility led-rule {
+  border-bottom: 1px solid rgba(147, 167, 196, 0.22);
 }
 
 @utility display {

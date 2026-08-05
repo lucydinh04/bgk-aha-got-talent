@@ -218,19 +218,39 @@ export type OverlayLevel =
  */
 const OVERLAYS: Record<OverlayLevel, string> = {
   none: "",
+  /**
+   * Mức nhẹ cho màn LED khi ít chữ (standby).
+   *
+   * Ellipse tâm chứ không phải dải đáy. Canvas LED là 2.765:1 và nội dung canh
+   * giữa theo chiều dọc, nên vùng cần tối là lõi giữa — không phải đáy. Bốn mép
+   * giữ nguyên light trail cam và cyan của artwork.
+   */
   light:
-    "linear-gradient(to top, rgba(4,9,20,.78) 0%, rgba(4,9,20,.22) 45%, rgba(4,9,20,.08) 100%)",
+    "radial-gradient(ellipse 58% 86% at 50% 50%, rgba(4,9,20,.80) 0%, rgba(4,9,20,.62) 48%, rgba(4,9,20,.24) 74%, rgba(4,9,20,.06) 90%, transparent 100%)",
   medium:
     "linear-gradient(to top, rgba(4,9,20,.9) 0%, rgba(6,13,30,.55) 50%, rgba(6,13,30,.35) 100%)",
   heavy:
     "linear-gradient(to top, rgba(4,9,20,.94) 0%, rgba(6,13,30,.74) 55%, rgba(6,13,30,.5) 100%)",
   /**
-   * Dùng cho LED khi có chữ: dải tối dồn xuống đáy, phần trên để nguyên.
-   * Không phủ đều — headline, logo và icon A in sẵn trong KV vẫn hiện rõ,
-   * còn chữ của hệ thống nằm gọn trong dải tối dưới đáy.
+   * Mức chính cho màn LED khi có chữ vận hành.
+   *
+   * ELLIPSE TÂM, KHÔNG PHẢI DẢI ĐÁY
+   *
+   * Bản 16:9 dùng `linear-gradient(to top, …)` vì nội dung neo xuống đáy khung.
+   * Canvas 3008×1088 đổi hẳn cách đặt: chiều cao khả dụng sau safe zone chỉ còn
+   * 944px, không có "dải đáy" nào để neo vào — nội dung canh giữa theo trục dọc
+   * và dàn ngang trong lõi 70%.
+   *
+   * Nên scrim cũng phải là ellipse tâm, rộng theo trục ngang để phủ đúng lõi 70%
+   * nơi có chữ, và tan dần về hai dải mép 15% để artwork còn sống ở đó. Đây chính
+   * là chỗ hai dải mép trả công: chúng giữ được màu campaign trong khi lõi giữa
+   * tối đủ để chữ đọc được từ cuối hội trường.
+   *
+   * Đánh đổi: headline "CHUYỂN MÌNH BỨT PHÁ" in sẵn trong artwork bị làm mờ ở
+   * vùng giữa. Có ý thức — chữ vận hành phải thắng.
    */
   stage:
-    "linear-gradient(to top, rgba(4,9,20,.97) 0%, rgba(4,9,20,.94) 20%, rgba(4,9,20,.62) 34%, rgba(6,13,30,.12) 52%, transparent 68%)",
+    "radial-gradient(ellipse 62% 92% at 50% 50%, rgba(4,9,20,.94) 0%, rgba(4,9,20,.90) 46%, rgba(4,9,20,.58) 70%, rgba(4,9,20,.18) 86%, transparent 100%)",
   /* rất mờ — dùng khi KV chỉ là texture nền phía sau dữ liệu dày */
   veil: "linear-gradient(to top, rgba(4,9,20,.97) 0%, rgba(4,9,20,.93) 100%)",
 };

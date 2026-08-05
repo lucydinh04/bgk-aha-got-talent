@@ -14,22 +14,47 @@ import { Overlay, type OverlayLevel } from "@/components/campaign";
  * remount và animation KHÔNG chạy lại từ đầu. Đó là lý do component này tách
  * hẳn khỏi phần nội dung state.
  *
- * Bảy lớp, dưới lên trên:
- *   1. KV city      — zoom rất chậm 1 → 1.025, 18s, alternate
- *   2. Blue glow    — hai quầng xanh trôi và thở
- *   3. Orange trail — vệt sáng chạy ngang dải thấp
- *   4. Particles    — 18 node CSS, không phải hàng trăm
- *   5. Fine grid    — drift gần như tĩnh
- *   6. Overlay      — scrim navy của design system, không đổi
- *   7. Vignette + noise
+ * NGÂN SÁCH CHUYỂN ĐỘNG — đọc trước khi thêm lớp mới
  *
- * Lớp 2–5 và 7 đánh dấu `data-motion-decorative` → biến mất hoàn toàn khi
- * người xem bật reduced motion.
+ * Màn này chạy Chrome fullscreen ba tiếng trên máy phát LED, thứ có GPU và bộ
+ * nhớ video kém xa máy dev. Nên chỉ còn ĐÚNG MỘT animation chạy liên tục ở
+ * kích thước toàn khung: KV drift. Mọi lớp khác đã thành tĩnh hoặc rất nhỏ.
+ *
+ * Bốn thứ đã bỏ khỏi bản trước, kèm lý do:
+ *
+ *   · Hai quầng glow `filter: blur(28px)` CÓ animate transform và opacity.
+ *     Blur là paint; animate một lớp đã blur ở cỡ nửa màn hình buộc GPU tổng
+ *     hợp lại vùng mờ mỗi khung hình. Đây là lớp đắt nhất trong bản cũ. Giờ là
+ *     radial-gradient tĩnh — mắt thấy gần như y hệt, chi phí bằng không, vì
+ *     gradient đã có biên mềm sẵn nên không cần blur.
+ *
+ *   · Lưới animate `background-position` → repaint toàn khung mỗi frame. Giờ
+ *     tĩnh.
+ *
+ *   · Lớp noise `feTurbulence` + `mix-blend-mode: overlay` ở opacity 0.035.
+ *     Blend mode buộc tách stacking context riêng; và 3.5% hạt trên màn LED
+ *     cách người xem 20m thì không ai thấy. Bỏ hẳn.
+ *
+ *   · 18 particle, mỗi cái `will-change` → 18 texture GPU thường trú. Còn 10,
+ *     và không lớp nào tự khai `will-change` nữa; trình duyệt tự promote trong
+ *     lúc animation chạy, đó là việc của nó.
+ *
+ * Năm lớp còn lại, dưới lên trên:
+ *   1. KV city      — zoom rất chậm 1 → 1.025, 18s, alternate  ← animation duy nhất cỡ lớn
+ *   2. Ambient glow — hai quầng navy/cyan TĨNH
+ *   3. Orange trail — hai vệt mảnh chạy ngang dải thấp
+ *   4. Particles    — 10 điểm nhỏ trôi lên
+ *   5. Fine grid    — TĨNH
+ *   6. Overlay      — scrim navy của design system, không đổi
+ *   7. Vignette     — TĨNH
+ *
+ * Lớp 3 và 4 đánh dấu `data-motion-decorative` → biến mất hoàn toàn khi người
+ * xem bật reduced motion.
  */
 
-/** 18 hạt. Vị trí và nhịp cố định theo index — không random, nên SSR và client
- *  dựng ra cùng một DOM, và không có hydration mismatch. */
-const PARTICLE_COUNT = 18;
+/** Vị trí và nhịp cố định theo index — không random, nên SSR và client dựng ra
+ *  cùng một DOM, và không có hydration mismatch. */
+const PARTICLE_COUNT = 10;
 
 interface BackgroundProps {
   overlay?: OverlayLevel;
@@ -60,17 +85,28 @@ export function AnimatedCampaignBackground({
 
   return (
     <>
-      {/* 1 · KV city — scale đồng đều, không bao giờ scaleX riêng lẻ */}
+      {/*
+        1 · KV city — scale đồng đều, không bao giờ scaleX riêng lẻ.
+        Animation liên tục cỡ lớn DUY NHẤT trên màn này.
+
+        Dùng `coverLandscape` (3000×1322 = 2.27:1) chứ KHÔNG phải `kvLandscape`
+        (1920×1072 = 1.79:1). Canvas LED là 3008×1088 = 2.765:1, nên:
+
+          · coverLandscape → cover cắt 18% chiều cao
+          · kvLandscape    → cover cắt 35% chiều cao
+
+        Ở mức cắt 35%, hai góc trên của artwork mất — đúng chỗ logo Ahamove và
+        badge 11 năm được in sẵn. Với 18% thì phần branding ở giữa ảnh còn nguyên.
+        Không bao giờ dùng `fit: contain` ở đây: nó để lại hai dải navy hai bên
+        giữa lòng canvas, trông như ảnh bị đặt lệch chứ không phải nền sân khấu.
+      */}
       <div
         aria-hidden
-        className="motion-layer"
-        style={{
-          animation: "kv-drift 18s ease-in-out infinite alternate",
-          willChange: "transform",
-        }}
+        className="motion-layer-gpu"
+        style={{ animation: "kv-drift 18s ease-in-out infinite alternate" }}
       >
         <CampaignImage
-          asset="kvLandscape"
+          asset="coverLandscape"
           fill
           priority
           quality={90}
@@ -82,7 +118,7 @@ export function AnimatedCampaignBackground({
 
       {!bare ? (
         <>
-          <BlueEnergyGlow />
+          <AmbientGlow />
           <OrangeLightTrail />
           <AmbientParticleLayer />
           <DigitalSquareField />
@@ -112,32 +148,27 @@ export function AnimatedCampaignBackground({
   );
 }
 
-/* ── Lớp 2 · Blue energy glow ────────────────────────────────────────────── */
+/* ── Lớp 2 · Ambient glow — TĨNH ─────────────────────────────────────────
+   Một lớp, hai gradient, không animation và không `filter: blur`.
 
-export function BlueEnergyGlow() {
+   `radial-gradient` với điểm dừng cuối ở alpha 0 đã cho biên mềm hoàn toàn, nên
+   `blur()` chỉ làm mềm thêm thứ đã mềm — trả bằng một lần paint vùng lớn. Gộp
+   hai quầng vào một node để bớt một lớp tổng hợp.
+
+   Không còn `data-motion-decorative`: lớp này đã tĩnh, reduced motion không cần
+   ẩn nó, và giữ lại thì màu campaign không biến mất khi bật chế độ đó. */
+
+export function AmbientGlow() {
   return (
-    <div aria-hidden data-motion-decorative="true" className="motion-layer">
-      <div
-        className="absolute top-[-12%] left-[-8%] h-[70%] w-[52%] rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(30,107,255,.34) 0%, rgba(30,107,255,0) 68%)",
-          filter: "blur(28px)",
-          animation: "glow-drift 9s ease-in-out infinite",
-          willChange: "transform, opacity",
-        }}
-      />
-      <div
-        className="absolute right-[-10%] bottom-[6%] h-[62%] w-[46%] rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(53,214,240,.26) 0%, rgba(53,214,240,0) 70%)",
-          filter: "blur(32px)",
-          animation: "glow-drift 12.5s ease-in-out -4s infinite",
-          willChange: "transform, opacity",
-        }}
-      />
-    </div>
+    <div
+      aria-hidden
+      className="motion-layer"
+      style={{
+        backgroundImage:
+          "radial-gradient(ellipse 52% 70% at 4% -8%, rgba(30,107,255,.30) 0%, rgba(30,107,255,0) 66%)," +
+          "radial-gradient(ellipse 46% 62% at 104% 88%, rgba(53,214,240,.22) 0%, rgba(53,214,240,0) 68%)",
+      }}
+    />
   );
 }
 
@@ -146,10 +177,11 @@ export function BlueEnergyGlow() {
    hệ thống. Không che nội dung ở bất kỳ state nào. */
 
 export function OrangeLightTrail() {
+  // Hai vệt, không ba. Vệt thứ ba ở opacity 0.32 và cao 1px nằm lẫn trong KV,
+  // không ai phân biệt được — nhưng vẫn là một lớp tổng hợp phải chạy suốt.
   const trails = [
     { top: "74%", w: "26%", h: "2px", dur: "7.5s", delay: "0s", o: 0.75 },
     { top: "80%", w: "16%", h: "1px", dur: "9.5s", delay: "-3.2s", o: 0.5 },
-    { top: "69%", w: "10%", h: "1px", dur: "11s", delay: "-6.4s", o: 0.32 },
   ];
   return (
     <div aria-hidden data-motion-decorative="true" className="motion-layer">
@@ -162,11 +194,11 @@ export function OrangeLightTrail() {
             width: t.w,
             height: t.h,
             opacity: t.o,
+            // Quầng sáng nằm trong chính gradient thay vì box-shadow: cùng một
+            // vẻ, nhưng không có vùng shadow phải paint ngoài khung phần tử.
             background:
               "linear-gradient(90deg, rgba(255,127,50,0) 0%, rgba(255,167,107,.95) 55%, rgba(255,127,50,0) 100%)",
-            boxShadow: "0 0 14px rgba(255,127,50,.55)",
             animation: `trail-run ${t.dur} linear ${t.delay} infinite`,
-            willChange: "transform, opacity",
           }}
         />
       ))}
@@ -175,9 +207,13 @@ export function OrangeLightTrail() {
 }
 
 /* ── Lớp 4 · Particles ───────────────────────────────────────────────────
-   18 div, mỗi div một animation CSS chạy trên compositor. Không canvas, không
+   10 div, mỗi div một animation CSS chạy trên compositor. Không canvas, không
    requestAnimationFrame, nên không có timer để rò và không có gì phải dọn khi
-   unmount. Với 18 node thì DOM rẻ hơn hẳn một vòng lặp rAF tự viết. */
+   unmount.
+
+   Bản trước có 18 hạt, mỗi hạt tự khai `will-change: transform, opacity` —
+   nghĩa là 18 texture GPU giữ thường trú cho 18 điểm sáng rộng 1.5–3px. Trên
+   màn LED xa 20m thì tám hạt bớt đi không ai nhận ra; bộ nhớ video thì có. */
 
 export function AmbientParticleLayer({ count = PARTICLE_COUNT }: { count?: number }) {
   const particles = useMemo(
@@ -186,6 +222,7 @@ export function AmbientParticleLayer({ count = PARTICLE_COUNT }: { count?: numbe
         // Dàn đều theo chiều ngang bằng số nguyên tố để không thành hàng lối.
         const left = ((i * 37) % 100) + (i % 3);
         const size = i % 5 === 0 ? 3 : i % 3 === 0 ? 2 : 1.5;
+        const cyan = i % 4 === 0;
         return {
           left: `${left}%`,
           bottom: `${(i * 13) % 46}%`,
@@ -193,7 +230,7 @@ export function AmbientParticleLayer({ count = PARTICLE_COUNT }: { count?: numbe
           driftX: `${((i % 7) - 3) * 8}px`,
           duration: `${11 + (i % 6) * 2.4}s`,
           delay: `-${(i * 1.7) % 14}s`,
-          cyan: i % 4 === 0,
+          cyan,
         };
       }),
     [count],
@@ -204,18 +241,21 @@ export function AmbientParticleLayer({ count = PARTICLE_COUNT }: { count?: numbe
       {particles.map((p, i) => (
         <span
           key={i}
-          className="absolute block rounded-[1px]"
+          className="absolute block"
           style={
             {
               left: p.left,
               bottom: p.bottom,
-              width: p.size,
-              height: p.size,
-              background: p.cyan ? "#35d6f0" : "#7fb2ff",
-              boxShadow: `0 0 ${p.size * 3}px ${p.cyan ? "rgba(53,214,240,.8)" : "rgba(127,178,255,.7)"}`,
+              // Hạt to hơn một chút và dùng radial-gradient thay cho
+              // màu đặc + box-shadow: quầng sáng nằm trong nền của chính phần
+              // tử, không phải một vùng shadow riêng phải paint quanh nó.
+              width: p.size * 4,
+              height: p.size * 4,
+              background: p.cyan
+                ? "radial-gradient(circle, rgba(53,214,240,.95) 0%, rgba(53,214,240,0) 62%)"
+                : "radial-gradient(circle, rgba(127,178,255,.9) 0%, rgba(127,178,255,0) 62%)",
               "--drift-x": p.driftX,
               animation: `particle-rise ${p.duration} linear ${p.delay} infinite`,
-              willChange: "transform, opacity",
             } as React.CSSProperties
           }
         />
@@ -226,11 +266,12 @@ export function AmbientParticleLayer({ count = PARTICLE_COUNT }: { count?: numbe
 
 /* ── Lớp 5 · Digital square field ───────────────────────────────────────── */
 
+/* Lưới TĨNH. Xem ghi chú `grid-drift` trong motion.css về lý do bỏ animation. */
+
 export function DigitalSquareField() {
   return (
     <div
       aria-hidden
-      data-motion-decorative="true"
       className="motion-layer"
       style={{
         opacity: 0.16,
@@ -240,37 +281,27 @@ export function DigitalSquareField() {
         backgroundSize: "64px 64px",
         maskImage:
           "radial-gradient(ellipse 70% 60% at 50% 45%, rgba(0,0,0,.9) 0%, transparent 78%)",
-        animation: "grid-drift 26s linear infinite",
-        willChange: "background-position",
       }}
     />
   );
 }
 
-/* ── Lớp 7 · Vignette + noise ────────────────────────────────────────────
-   Tĩnh hoàn toàn. Có mặt để KV có chiều sâu, không phải để chuyển động. */
+/* ── Lớp 7 · Vignette ────────────────────────────────────────────────────
+   Một gradient tĩnh. Có mặt để KV có chiều sâu, không phải để chuyển động.
+
+   Lớp noise `feTurbulence` + `mix-blend-mode: overlay` đã bị bỏ: blend mode
+   buộc trình duyệt tách stacking context và tổng hợp lại toàn khung, để đổi lấy
+   3.5% hạt mà ở khoảng cách xem trong hội trường thì không ai thấy. */
 
 function VignetteNoise() {
   return (
-    <>
-      <div
-        aria-hidden
-        className="motion-layer"
-        style={{
-          background:
-            "radial-gradient(ellipse 88% 74% at 50% 46%, transparent 42%, rgba(4,9,20,.55) 100%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="motion-layer"
-        style={{
-          opacity: 0.035,
-          mixBlendMode: "overlay",
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E\")",
-        }}
-      />
-    </>
+    <div
+      aria-hidden
+      className="motion-layer"
+      style={{
+        background:
+          "radial-gradient(ellipse 88% 74% at 50% 46%, transparent 42%, rgba(4,9,20,.55) 100%)",
+      }}
+    />
   );
 }
