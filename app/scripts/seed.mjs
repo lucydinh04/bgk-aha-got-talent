@@ -25,6 +25,7 @@ const APP = resolve(HERE, "..");
 const DB_PATH = process.env.AHA_DB_PATH ?? join(APP, ".data", "aha.db");
 const SNAPSHOT_CANDIDATES = [
   process.env.AHA_SNAPSHOT_PATH,
+  join(HERE, "snapshot.json"),
   "/data/snapshot.json",
   "/app/seed-data/snapshot.json",
   resolve(APP, "..", "data", "snapshot.json"),
