@@ -33,18 +33,18 @@ const now = () => new Date().toISOString();
  * được, kể cả gõ đúng địa chỉ tồn tại thật.
  */
 const USERS = [
-  { email: "admin.sgn@ahamove.com", full_name: "Admin SGN", role: "admin", title: "Ban Tổ chức", location: "SGN" },
-  { email: "admin.han@ahamove.com", full_name: "Admin HAN", role: "admin", title: "Ban Tổ chức", location: "HAN" },
+  // location: null = quản/chấm cả hai đầu cầu. Cả BTC và hội đồng BGK dùng
+  // chung một tài khoản cho SGN 07/08 và HAN 14/08.
+  { email: "nhidvm@ahamove.com", full_name: "Nhidvm", role: "admin", title: "Ban Tổ chức", location: null },
 
-  { email: "bgk1.sgn@ahamove.com", full_name: "BGK 01 · SGN", role: "judge", title: "Trưởng ban giám khảo", location: "SGN" },
-  { email: "bgk2.sgn@ahamove.com", full_name: "BGK 02 · SGN", role: "judge", title: "Giám khảo", location: "SGN" },
-  { email: "bgk3.sgn@ahamove.com", full_name: "BGK 03 · SGN", role: "judge", title: "Giám khảo", location: "SGN" },
-  { email: "bgk4.sgn@ahamove.com", full_name: "BGK 04 · SGN", role: "judge", title: "Khách mời", location: "SGN" },
-  { email: "bgk5.sgn@ahamove.com", full_name: "BGK 05 · SGN", role: "judge", title: "Khách mời", location: "SGN" },
-
-  { email: "bgk1.han@ahamove.com", full_name: "BGK 01 · HAN", role: "judge", title: "Trưởng ban giám khảo", location: "HAN" },
-  { email: "bgk2.han@ahamove.com", full_name: "BGK 02 · HAN", role: "judge", title: "Giám khảo", location: "HAN" },
-  { email: "bgk3.han@ahamove.com", full_name: "BGK 03 · HAN", role: "judge", title: "Giám khảo", location: "HAN" },
+  { email: "duyennt@ahamove.com",  full_name: "Duyennt",  role: "judge", title: "Trưởng ban giám khảo", location: null },
+  { email: "trangdlh@ahamove.com", full_name: "Trangdlh", role: "judge", title: "Giám khảo", location: null },
+  { email: "thangls@ahamove.com",  full_name: "Thangls",  role: "judge", title: "Giám khảo", location: null },
+  { email: "tuan@ahamove.com",     full_name: "Tuan",     role: "judge", title: "Giám khảo", location: null },
+  { email: "ngon@ahamove.com",     full_name: "Ngon",     role: "judge", title: "Giám khảo", location: null },
+  { email: "chunglh@ahamove.com",  full_name: "Chunglh",  role: "judge", title: "Giám khảo", location: null },
+  { email: "tuannq@ahamove.com",   full_name: "Tuannq",   role: "judge", title: "Giám khảo", location: null },
+  { email: "vyphb@ahamove.com",    full_name: "Vyphb",    role: "judge", title: "Giám khảo", location: null },
 ];
 
 /* ── Mở DB ───────────────────────────────────────────────────────────────── */
@@ -136,12 +136,16 @@ for (const u of USERS) {
   );
 }
 
-/* ── Phân công: mỗi BGK chấm toàn bộ tiết mục đã duyệt của đầu cầu mình ──── */
+/* ── Phân công: mỗi BGK chấm toàn bộ tiết mục đã duyệt của đầu cầu mình ────
+ * BGK có `location` = null chấm cả hai đầu cầu, nên vòng lặp này gán họ vào
+ * tiết mục của cả SGN và HAN. Thiếu điều kiện đó thì dashboard của họ rỗng:
+ * judge/[location]/dashboard giao danh sách đã duyệt với danh sách phân công.
+ */
 
 let assignments = 0;
 for (const location of ["SGN", "HAN"]) {
   const judges = all(
-    "select id from users where role = 'judge' and location = ? and status = 'active'",
+    "select id from users where role = 'judge' and status = 'active' and (location is null or location = ?)",
     location,
   );
   const performances = all(
@@ -288,8 +292,8 @@ Phân công ${count("select count(*) as n from judge_assignments")} (mới thêm
 Điểm     ${count("select count(*) as n from scores")} · draft ${count("select count(*) as n from scores where status='draft'")} / submitted ${count("select count(*) as n from scores where status='submitted'")} / locked ${count("select count(*) as n from scores where status='locked'")}
 
 Đăng nhập thử:
-  Admin  http://localhost:3000/admin/login       admin.sgn@ahamove.com
-  BGK    http://localhost:3000/judge/sgn         bgk1.sgn@ahamove.com
+  Admin  http://localhost:3000/admin/login       nhidvm@ahamove.com
+  BGK    http://localhost:3000/judge/sgn         duyennt@ahamove.com
   LED    http://localhost:3000/live/sgn
 `);
 

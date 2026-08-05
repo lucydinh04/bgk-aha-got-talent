@@ -32,9 +32,16 @@ export function findById(id: string): UserRow | undefined {
   return get<UserRow>(`${SELECT} where id = ?`, id);
 }
 
+/**
+ * BGK của một đầu cầu, gồm cả người có `location` = null vì họ chấm cả hai.
+ * Bảng tiến độ của Admin giao danh sách này với tiết mục đã lọc theo đầu cầu,
+ * nên BGK chung không làm lẫn tiết mục giữa SGN và HAN.
+ */
 export function listJudges(location: LocationCode): UserRow[] {
   return all<UserRow>(
-    `${SELECT} where role = 'judge' and location = ? and status = 'active' order by full_name`,
+    `${SELECT} where role = 'judge' and status = 'active'
+       and (location is null or location = ?)
+     order by full_name`,
     location,
   );
 }

@@ -34,7 +34,7 @@ create table if not exists users (
                   check (role in ('judge', 'admin', 'super_admin')),
   title         text,
   department    text,
-  -- NULL = cả hai đầu cầu. BGK bắt buộc có giá trị; Admin có thể NULL.
+  -- NULL = cả hai đầu cầu, dùng được cho cả Admin và BGK.
   location      text check (location in ('SGN', 'HAN')),
   status        text not null default 'active'
                   check (status in ('active', 'disabled')),

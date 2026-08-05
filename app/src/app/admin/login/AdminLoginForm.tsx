@@ -22,7 +22,7 @@ export function AdminLoginForm() {
           inputMode="email"
           autoComplete="email"
           aria-invalid={state.error ? true : undefined}
-          placeholder="admin.sgn@ahamove.com"
+          placeholder="ten@ahamove.com"
           className={`bg-navy-950/80 text-chalk placeholder:text-silver-dim focus:border-brand min-h-[48px] rounded-lg border px-4 text-base outline-none transition ${
             state.error ? "border-danger" : "border-navy-700"
           }`}

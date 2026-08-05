@@ -46,9 +46,12 @@ export async function judgeLogin(
 
   // Đầu cầu nằm trong URL, không nằm trong session — BGK không tự đổi được, và
   // vào nhầm link thì được chỉ đúng đường thay vì bị chặn cụt.
-  if (user.location !== location) {
+  //
+  // `location` = null là BGK chấm cả hai đầu cầu: không có đầu cầu nào để chỉ
+  // sang, nên không chặn.
+  if (user.location && user.location !== location) {
     return {
-      error: `Bạn được phân công chấm đầu cầu ${user.location}. Mở /judge/${user.location?.toLowerCase()} để đăng nhập.`,
+      error: `Bạn được phân công chấm đầu cầu ${user.location}. Mở /judge/${user.location.toLowerCase()} để đăng nhập.`,
       email,
     };
   }

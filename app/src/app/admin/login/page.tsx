@@ -61,8 +61,8 @@ export default async function AdminLoginPage() {
           <AdminLoginForm />
 
           <p className="text-silver-dim mt-5 text-xs leading-relaxed">
-            Quyền Admin gắn với đầu cầu. Admin SGN không mở được Live Control của
-            HAN và ngược lại.
+            Quyền Admin có thể gắn với một đầu cầu hoặc cả hai. Admin chỉ được
+            phân công SGN sẽ không mở được Live Control của HAN và ngược lại.
           </p>
         </div>
       </div>

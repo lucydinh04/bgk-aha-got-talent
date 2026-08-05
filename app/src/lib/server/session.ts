@@ -114,11 +114,15 @@ export async function endSession(): Promise<void> {
 /**
  * BGK của đúng đầu cầu đó. Trả `null` thay vì ném lỗi: caller quyết định là
  * redirect về trang đăng nhập hay trả 401, hai chỗ cần hai cách khác nhau.
+ *
+ * `location` = null nghĩa là BGK chấm cả hai đầu cầu — cùng một hội đồng cho
+ * SGN và HAN. Đầu cầu vẫn lấy từ URL chứ không từ session, nên tiết mục và
+ * điểm luôn được ghi đúng đêm diễn; xem `context()` trong actions/scoring.ts.
  */
 export async function requireJudge(location: LocationCode): Promise<Session | null> {
   const session = await readSession();
   if (!session || session.role !== "judge") return null;
-  if (session.location !== location) return null;
+  if (session.location && session.location !== location) return null;
   if (!isActive(session.userId)) return null;
   return session;
 }

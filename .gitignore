@@ -75,3 +75,4 @@ coverage/
 # File tạm khi thử nghiệm
 *.tmp
 sheet_test.*
+.env*
