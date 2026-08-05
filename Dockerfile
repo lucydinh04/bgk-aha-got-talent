@@ -42,7 +42,8 @@ COPY --from=build /app/next.config.ts ./next.config.ts
 # Script seed + backup phải có mặt để chạy được sau khi deploy.
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/src/lib/db ./src/lib/db
-COPY data/snapshot.json /app/seed-data/snapshot.json
+RUN mkdir -p /app/seed-data
+COPY --from=build /data/snapshot.json /app/seed-data/snapshot.json
 
 RUN mkdir -p /data && chown -R node:node /data
 # USER node
