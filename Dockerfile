@@ -1,4 +1,4 @@
-# ═══════════════════════════════════════════════════════════════════════════
+## ═══════════════════════════════════════════════════════════════════════════
 # AHA GOT TALENT 2026
 #
 # Một tiến trình Node chạy liên tục. KHÔNG phải serverless — hệ thống dựa vào
@@ -44,7 +44,7 @@ COPY --from=build /app/src/lib/db ./src/lib/db
 COPY --from=build /data ../data
 
 RUN mkdir -p /data && chown -R node:node /data
-USER node
+# USER node
 
 EXPOSE 3000
 # Nền tảng tự đặt PORT; Next đọc biến này.
