@@ -1,3 +1,4 @@
+ycd ~/Sinh\ nhật
 ## ═══════════════════════════════════════════════════════════════════════════
 # AHA GOT TALENT 2026
 #
@@ -41,7 +42,7 @@ COPY --from=build /app/next.config.ts ./next.config.ts
 # Script seed + backup phải có mặt để chạy được sau khi deploy.
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/src/lib/db ./src/lib/db
-COPY --from=build /data ../data
+COPY --from=build /data /app/seed-data
 
 RUN mkdir -p /data && chown -R node:node /data
 # USER node
