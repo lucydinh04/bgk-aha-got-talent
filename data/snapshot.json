@@ -1,0 +1,791 @@
+{
+  "fetched_at": "2026-07-31T12:11:29.843Z",
+  "spreadsheet_id": "1D-kqGPIj6N2_xv0b0PxmYU8dOe2P8wGull7dBZX3yX4",
+  "header_labels": [
+    "Mã đăng ký",
+    "Thời gian gửi",
+    "Bối cảnh chương trình",
+    "Đầu cầu",
+    "Hình thức",
+    "Tên tiết mục",
+    "Loại hình biểu diễn",
+    "Thời lượng (phút)",
+    "Người đại diện",
+    "Telegram đại diện",
+    "Phòng ban đại diện",
+    "Email",
+    "Số điện thoại",
+    "Tổng số thành viên",
+    "Danh sách thành viên",
+    "Mô tả ý tưởng",
+    "Điểm nhấn chuyển mình",
+    "Ý tưởng trang phục",
+    "Ứng dụng AI/công nghệ",
+    "Cần BTC hỗ trợ?",
+    "Mô tả nhu cầu hỗ trợ",
+    "Trạng thái",
+    "Ghi chú BTC",
+    "Ngày cập nhật",
+    ""
+  ],
+  "summary": {
+    "total_source_rows": 8,
+    "performances": 8,
+    "sgn": 4,
+    "han": 4,
+    "members": 37,
+    "rejected": 0,
+    "rows_with_issues": 0,
+    "rows_new_layout": 6,
+    "rows_legacy_layout": 2
+  },
+  "performances": [
+    {
+      "registration_code": "AHA26-SGN-260723101722-YV2A",
+      "source_submitted_at": "2026-07-23T03:17:23.000Z",
+      "programme_context": "Aha Got Talent 2026 — Sinh nhật Ahamove 11 tuổi — Chuyển mình bứt phá",
+      "location": "SGN",
+      "participation_type": "Nhóm",
+      "performance_name": "Bí mật chỉ chờ ngày bật mí!",
+      "performance_type": "Kịch / Hài / Nhạc kịch",
+      "duration_minutes": 4,
+      "representative_name": "Lê Thị Hà",
+      "representative_telegram": "@Lahale05",
+      "department": "Central Operations",
+      "representative_email": "halt@ahamove.com",
+      "representative_phone": "388857902",
+      "member_count": 4,
+      "member_list_raw": null,
+      "concept_description": null,
+      "transformation_highlight": null,
+      "costume_idea": null,
+      "ai_technology_usage": null,
+      "support_required": false,
+      "support_description": null,
+      "registration_status": "Mới đăng ký",
+      "organiser_note": null,
+      "source_updated_at": "2026-07-23T03:17:23.000Z",
+      "_meta": {
+        "source_row": 2,
+        "column_offset": 0,
+        "shape_confidence": "email",
+        "backfilled": [
+          "representative_name"
+        ]
+      },
+      "member_rows_found": 4
+    },
+    {
+      "registration_code": "AHA26-HAN-260728161931-45MW",
+      "source_submitted_at": "2026-07-28T09:19:31.000Z",
+      "programme_context": "Aha Got Talent 2026 — Sinh nhật Ahamove 11 tuổi — Chuyển mình bứt phá",
+      "location": "HAN",
+      "participation_type": "Cặp đôi",
+      "performance_name": "From A to AI",
+      "performance_type": "Ca hát",
+      "duration_minutes": 4,
+      "representative_name": "Trần Thị Tuyết",
+      "representative_telegram": "@trantuyet25",
+      "department": "Central Operations",
+      "representative_email": "tuyettt@ahamove.com",
+      "representative_phone": "936248262",
+      "member_count": 2,
+      "member_list_raw": null,
+      "concept_description": "Biến mash up 3 thứ tiếng (tiếng Trung - tiếng Anh - tiếng Việt) thành 1 câu chuyện có mở đầu, chuyển biến kết thúc theo đúng chủ đề.\n\nBối cảnh là 1 ngày mưa bão, khó khăn cho việc giao hàng\nBài hát 1 phần 1: Cuộc đời vô danh (Tiếng Trung) thể hiện sự đóng góp thầm lặng, khó khăn trên đường giao hàng trong cơn bão của shipper\nBài hát 2 phần 2: Let It Go (Tiếng Anh) thể hiện áp lực công việc của nhân viên Ahamove, các chỉ số vận hành giảm trầm trọng\nBài hát 3 phần 3: Đón bình minh (Tiếng Việt) nhờ hỗ trợ của AI Ahamove vượt qua giông bão, tài xế vui vẻ với thu nhập ổn định, nhân viên đạt KPI, khách hàng được đảm bảo chất lượng dịch vụ",
+      "transformation_highlight": "Chuyển mình được đan xen từ phần 2 qua tới phần 3 -> AI hỗ trợ làm report, phân tích, giúp đưa ra quyết định cải thiện chỉ số, hoàn thiện task 1 cách nhanh chóng\nAI hỗ trợ tài xế huỷ đơn, hướng dẫn lộ trình phù hợp...\nTam giác: Nhân viên hạnh phúc, tài xế vui vẻ, khách hàng hài lòng kết hợp vs AI\n=> Ahamove Future Self – Phiên bản bứt phá tiến xa",
+      "costume_idea": "em cần 1 bộ đồ cho người cosplay AI trông ngầu đét kiểu hiện đại ạ",
+      "ai_technology_usage": "làm video trình chiếu từ AI",
+      "support_required": true,
+      "support_description": "hỗ trợ chiếu đèn, màn hình trình chiếu tương ứng với kịch bản",
+      "registration_status": "Mới đăng ký",
+      "organiser_note": null,
+      "source_updated_at": "2026-07-28T09:19:31.000Z",
+      "_meta": {
+        "source_row": 3,
+        "column_offset": 0,
+        "shape_confidence": "email",
+        "backfilled": [
+          "representative_name"
+        ]
+      },
+      "member_rows_found": 2
+    },
+    {
+      "registration_code": "AHA26-SGN-260729140552-D0CT",
+      "source_submitted_at": "2026-07-29T07:05:52.000Z",
+      "programme_context": "Aha Got Talent 2026 — Sinh nhật Ahamove 11 tuổi — Chuyển mình bứt phá",
+      "location": "SGN",
+      "participation_type": "Nhóm",
+      "performance_name": "REBORN QUEENS — NEW ERA",
+      "performance_type": "Nhảy / Múa",
+      "duration_minutes": 4,
+      "representative_name": "Trần Thiện Mỹ",
+      "representative_telegram": "@mytt2201",
+      "department": "Business Development",
+      "representative_email": "mytt@ahamove.com",
+      "representative_phone": "386694994",
+      "member_count": 11,
+      "member_list_raw": "2. Trần Huỳnh Kim Thoa | @KimThov | Business Development\n3. Dương Nữ Quỳnh Chi | @chidnq | Business Development\n4. Trịnh Thuý Trinh | @TrinhTTrinh | Business Development\n5. Trần Hải Duyên | @haidien0927 | Business Development\n6. Nguyễn Thị Hồng Liên | @chloenguyen104 | Business Development\n7. Trần Phương Trà My | @mytran10 | Business Development\n8. Nguyễn Minh Ngọc Bích | @bichnmn | Business Development\n9. Lê Vũ Phương Thảo | @thaoleBDG | Business Development\n10. Nguyễn Ngọc Anh Thư | @thunna_sme_ba_exe | Business Development\n11. Vương Thị Ngọc Phương | @chemeden | Business Development",
+      "concept_description": "Mashup \"Lá Ngọc Cành Vàng\" × \"Firework\" - Hát live x Múa truyền thống x Nhảy hiện đại\nNữ cường thời đại mới — Tự tin · Độc lập · Toả sáng\nMột khúc tráng ca tôn vinh người phụ nữ Việt Nam bản lĩnh, kiêu hãnh và tự chủ — mạnh mẽ từ trong cốt cách, nay sải bước vào thời đại mới với khát vọng và sức bật lớn hơn bao giờ hết.\n\nBám sát tinh thần cuộc thi \"Chuyển mình bứt phá\" và chủ đề Future Self: lấy chất liệu quen thuộc (ballad âm hưởng ca trù) làm mới bằng bản phối EDM hiện đại (Reinvent), rồi hoà quyện hai dòng nhạc Đông–Tây thành trải nghiệm sân khấu chưa từng có (Fusion) — giữ trọn cội nguồn, vươn tới tầm cao mới.",
+      "transformation_highlight": null,
+      "costume_idea": "Art Director x Stylist đang làm việc & kêu gọi crowd funding",
+      "ai_technology_usage": "AI tách nhạc, hoà âm phối khí, làm video màn hình Led",
+      "support_required": true,
+      "support_description": "Hỗ trợ 1 micro hát live, âm thanh chuẩn chỉnh có thể hát live, ánh sáng + khói sân khấu theo nhạc,",
+      "registration_status": "Mới đăng ký",
+      "organiser_note": null,
+      "source_updated_at": "2026-07-29T07:05:52.000Z",
+      "_meta": {
+        "source_row": 4,
+        "column_offset": 1,
+        "shape_confidence": "email"
+      },
+      "member_rows_found": 11
+    },
+    {
+      "registration_code": "AHA26-HAN-260729141247-EB0Y",
+      "source_submitted_at": "2026-07-29T07:12:47.000Z",
+      "programme_context": "Aha Got Talent 2026 — Sinh nhật Ahamove 11 tuổi — Chuyển mình bứt phá",
+      "location": "HAN",
+      "participation_type": "Nhóm",
+      "performance_name": "Nộp sau nhé",
+      "performance_type": "Ca hát",
+      "duration_minutes": 5,
+      "representative_name": "Lê Hoàng Nhất Thống",
+      "representative_telegram": "@Harrison1910",
+      "department": "Business Development",
+      "representative_email": "thonglnh@ahamove.com",
+      "representative_phone": "964036266",
+      "member_count": 3,
+      "member_list_raw": "2. Nguyễn Thị Thơ | @thor3046 | Business Development\n3. Lưu Thị Hoài Thương | @Thuongluu0801 | Business Development",
+      "concept_description": null,
+      "transformation_highlight": "Đổi trang phục",
+      "costume_idea": null,
+      "ai_technology_usage": null,
+      "support_required": true,
+      "support_description": "3 mic 3 ca sĩ, led trình chiếu",
+      "registration_status": "Mới đăng ký",
+      "organiser_note": null,
+      "source_updated_at": "2026-07-29T07:12:47.000Z",
+      "_meta": {
+        "source_row": 5,
+        "column_offset": 1,
+        "shape_confidence": "email"
+      },
+      "member_rows_found": 3
+    },
+    {
+      "registration_code": "AHA26-HAN-260730102549-QG2O",
+      "source_submitted_at": "2026-07-30T03:25:49.000Z",
+      "programme_context": "Aha Got Talent 2026 — Sinh nhật Ahamove 11 tuổi — Chuyển mình bứt phá",
+      "location": "HAN",
+      "participation_type": "Nhóm",
+      "performance_name": "Mười Một Năm — Một Chặng Đường",
+      "performance_type": "Nhảy / Múa",
+      "duration_minutes": 5,
+      "representative_name": "Cao Nhân Quyền",
+      "representative_telegram": "@quyencn",
+      "department": "Central Operations",
+      "representative_email": "quyencn@ahamove.com",
+      "representative_phone": "914718903",
+      "member_count": 9,
+      "member_list_raw": "2. Phạm Lê Phương Thảo | @thaoplp | Central Operations\n3. Lưu Đăng Lượng | @luongluu2003 | Supply Operations\n4. Nguyễn Phương Thuý | @phgthuy | Supply Operations\n5. Bùi Thu Hòa | @hanchihl | Supply Operations\n6. Trần Thị Huệ | @huehuetth | Supply Operations\n7. Lại Quốc Hoàng | @qhoang08 | Supply Operations\n8. Hoàng Công Duy | @duyhoangv2 | Supply Operations\n9. Nguyễn Tiến Hòa | @hoant99 | Central Operations",
+      "concept_description": "Phần 1 — \"Hanoi, Then and Now\" —\n\nHình ảnh Hà Nội hoài cổ — Hồ Gươm, phố cổ, cầu Long Biên — dần chuyển sang nhịp sống hiện đại với tài xế Ahamove. Nhạc nền piano Hà Nội Mùa Vắng Những Cơn Mưa gợi cảm xúc hoài niệm.\n\nPhần 2 — \"The Heart of Hanoi\" — \n\n4–6 thành viên múa áo dài, quạt nan theo Cầm Kỳ Thi Họa. Ca sĩ chính hát trung tâm, nhóm còn lại tạo hình phố phường Hà Nội. Trang phục áo dài cách tân trắng xám — điểm nhấn cam Ahamove.\n\nPhần 3 — \"The City Is Changing\" — \n\nHà Nội biến thành bản đồ số — phố thành đường dữ liệu, điểm giao nhận sáng lên, AI kết nối toàn thành phố. Nhạc Để Mị Nói Cho Mà Nghe build up căng thẳng → im lặng đột ngột → giọng AI trả lời → DROP bùng nổ.\n\nPhần 4 — \"OPS Transformation\" — \n\nToàn đội tháo áo ngoài — lộ trang phục futuristic đen/cam/cyan. Vũ đạo theo Cứ Chill Thôi diễn tả 4 giai đoạn: Rời rạc → Kết nối → Đồng bộ → Bứt phá\n\nPhần 5 — \"Move the Future\" —\n\nWe Will Rock You remix EDM — tiếng dậm chân kéo toàn bộ khán giả vào. Cả hội trường đồng thanh hô \"AHA — MOVE!\" x3 kết thúc bùng nổ.",
+      "transformation_highlight": "Cung bậc cảm xúc xuyên suốt\n😌 Hoài niệm\n     ↓\n🥹 Tự hào\n     ↓\n😮 Tò mò & hồi hộp\n     ↓\n🔥 Hưng phấn\n     ↓\n🎉 Bùng nổ & gắn kết",
+      "costume_idea": null,
+      "ai_technology_usage": null,
+      "support_required": true,
+      "support_description": "Màn chiếu, mic ạ",
+      "registration_status": "Mới đăng ký",
+      "organiser_note": null,
+      "source_updated_at": "2026-07-30T03:25:49.000Z",
+      "_meta": {
+        "source_row": 6,
+        "column_offset": 1,
+        "shape_confidence": "email"
+      },
+      "member_rows_found": 9
+    },
+    {
+      "registration_code": "AHA26-SGN-260730173814-KWAY",
+      "source_submitted_at": "2026-07-30T10:38:15.000Z",
+      "programme_context": "Aha Got Talent 2026 — Sinh nhật Ahamove 11 tuổi — Chuyển mình bứt phá",
+      "location": "SGN",
+      "participation_type": "Nhóm",
+      "performance_name": "ĐẢO BÔNG HẬU",
+      "performance_type": "Kịch / Hài / Nhạc kịch",
+      "duration_minutes": 5,
+      "representative_name": "Trần Mỹ Vân",
+      "representative_telegram": "@vantran247",
+      "department": "Supply Operations",
+      "representative_email": "vantm@ahamove.com",
+      "representative_phone": "932289247",
+      "member_count": 6,
+      "member_list_raw": "2. Lê Phương Khanh | @Lephuongkhanh | Supply Operations\n3. Ngô Huỳnh Khoa | @HKhoango98 | Supply Operations\n4. Ngụy Bá Thanh Sơn | @sonnguy | Supply Operations\n5. Nguyễn Thị Quỳnh Anh | @QuynhAnh92 | Supply Operations\n6. Nguyễn Thị Mỹ Tiên | @tienmymy | Supply Operations",
+      "concept_description": "Tiết mục mô phỏng một cuộc thi hoa hậu theo phong cách hài hước với Top 3 thí sinh, đại diện cho hành trình thay đổi – chuyển mình – bứt phá. Qua các phần thi tài năng, đối xử (biến thể từ vòng thi ứng xử) và đăng quang, tiết mục truyền tải thông điệp: mỗi cá nhân dám thay đổi sẽ góp phần tạo nên sự bứt phá của Ahamove.",
+      "transformation_highlight": "Màn đăng quang kết hợp biến hóa trang phục trực tiếp trên sân khấu cùng phần điệp khúc của bài nhạc, truyền tải thông điệp cho hành trình \"Chuyển mình để Bứt phá\".",
+      "costume_idea": null,
+      "ai_technology_usage": null,
+      "support_required": true,
+      "support_description": "màn hình led, tạo khói, bắn kim tuyến, đèn sân khấu, đèn spotlight, ít nhất 3 micro",
+      "registration_status": "Mới đăng ký",
+      "organiser_note": null,
+      "source_updated_at": "2026-07-30T10:38:15.000Z",
+      "_meta": {
+        "source_row": 7,
+        "column_offset": 1,
+        "shape_confidence": "email"
+      },
+      "member_rows_found": 6
+    },
+    {
+      "registration_code": "AHA26-HAN-260731094842-EY51",
+      "source_submitted_at": "2026-07-31T02:48:42.000Z",
+      "programme_context": "Aha Got Talent 2026 — Sinh nhật Ahamove 11 tuổi — Chuyển mình bứt phá",
+      "location": "HAN",
+      "participation_type": "Cá nhân",
+      "performance_name": "Xe đạp",
+      "performance_type": "Ca hát",
+      "duration_minutes": 4,
+      "representative_name": "Chu Minh Khánh",
+      "representative_telegram": "@khanhchu1",
+      "department": "Business Development",
+      "representative_email": "khanhcm@ahamove.com",
+      "representative_phone": "342649517",
+      "member_count": 1,
+      "member_list_raw": "Không có thành viên bổ sung",
+      "concept_description": "Dàn dựng sân khấu để nhờ bài hát kể 1 câu chuyện",
+      "transformation_highlight": "Dùng ca nhạc để kể chuyện",
+      "costume_idea": "trang phục theo tone trắng đen",
+      "ai_technology_usage": "trình chiếu trên màn hình led\nhình ảnh",
+      "support_required": true,
+      "support_description": "Hỗ trợ mic và led chiếu ạ",
+      "registration_status": "Mới đăng ký",
+      "organiser_note": null,
+      "source_updated_at": "2026-07-31T02:48:42.000Z",
+      "_meta": {
+        "source_row": 8,
+        "column_offset": 1,
+        "shape_confidence": "email"
+      },
+      "member_rows_found": 1
+    },
+    {
+      "registration_code": "AHA26-SGN-260731100442-08NQ",
+      "source_submitted_at": "2026-07-31T03:04:43.000Z",
+      "programme_context": "Aha Got Talent 2026 — Sinh nhật Ahamove 11 tuổi — Chuyển mình bứt phá",
+      "location": "SGN",
+      "participation_type": "Cá nhân",
+      "performance_name": "Chuyển nhịp",
+      "performance_type": "Nhảy / Múa",
+      "duration_minutes": 3,
+      "representative_name": "Nguyễn Phi Yến",
+      "representative_telegram": "@yennp",
+      "department": "Platform",
+      "representative_email": "yennp@ahamove.com",
+      "representative_phone": "376789842",
+      "member_count": 1,
+      "member_list_raw": "Không có thành viên bổ sung",
+      "concept_description": "Chuyển mình đôi khi không phải là trở thành một người khác, mà là dám bộc lộ nhiều phiên bản của chính mình.\nBài diễn mở đầu với những chuyển động mềm mại, nữ tính, rồi chuyển sang các động tác năng lượng mạnh mẽ, cá tính. Hai sắc thái đối lập nhưng cùng tồn tại trong hình ảnh một người phụ nữ hiện đại.\nLà một cô gái làm công nghệ, mình hiểu rằng sức mạnh không chỉ đến từ sự quyết đoán, mà còn từ sự dịu dàng đúng lúc. Chuyển mình là hành trình cân bằng giữa cương và nhu, để tự tin tỏa sáng theo cách của riêng mình.",
+      "transformation_highlight": "Chuyển thể loại nhạc và đổi trang phục 1 chút",
+      "costume_idea": "Trang phục trắng đen",
+      "ai_technology_usage": "AI hỗ trợ làm LED",
+      "support_required": false,
+      "support_description": null,
+      "registration_status": "Mới đăng ký",
+      "organiser_note": null,
+      "source_updated_at": "2026-07-31T03:04:43.000Z",
+      "_meta": {
+        "source_row": 9,
+        "column_offset": 1,
+        "shape_confidence": "email"
+      },
+      "member_rows_found": 1
+    }
+  ],
+  "members": [
+    {
+      "registration_code": "AHA26-SGN-260723101722-YV2A",
+      "location": "SGN",
+      "performance_name": "Bí mật chỉ chờ ngày bật mí!",
+      "full_name": "Lê Thị Hà",
+      "telegram": "@Lahale05",
+      "department": "Central Operations",
+      "is_representative": true,
+      "role": "Đại diện",
+      "_meta": {
+        "source_row": 2
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260723101722-YV2A",
+      "location": "SGN",
+      "performance_name": "Bí mật chỉ chờ ngày bật mí!",
+      "full_name": "Nguyễn Hữu Thịnh",
+      "telegram": "@thinhokio",
+      "department": "Central Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 3
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260723101722-YV2A",
+      "location": "SGN",
+      "performance_name": "Bí mật chỉ chờ ngày bật mí!",
+      "full_name": "Hỷ Chanh Vấy",
+      "telegram": "@VayQM",
+      "department": "Central Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 4
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260723101722-YV2A",
+      "location": "SGN",
+      "performance_name": "Bí mật chỉ chờ ngày bật mí!",
+      "full_name": "Lê Thị Ngọc Mai",
+      "telegram": "@maimaiqa",
+      "department": "Central Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 5
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260728161931-45MW",
+      "location": "HAN",
+      "performance_name": "From A to AI",
+      "full_name": "Trần Thị Tuyết",
+      "telegram": "@trantuyet25",
+      "department": "Central Operations",
+      "is_representative": true,
+      "role": "Đại diện",
+      "_meta": {
+        "source_row": 6
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260728161931-45MW",
+      "location": "HAN",
+      "performance_name": "From A to AI",
+      "full_name": "Nguyễn Huy Hoàng",
+      "telegram": "@hoangng71",
+      "department": "Supply Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 7
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260729140552-D0CT",
+      "location": "SGN",
+      "performance_name": "REBORN QUEENS — NEW ERA",
+      "full_name": "Trần Thiện Mỹ",
+      "telegram": "@mytt2201",
+      "department": "Business Development",
+      "is_representative": true,
+      "role": "Đại diện",
+      "_meta": {
+        "source_row": 8
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260729140552-D0CT",
+      "location": "SGN",
+      "performance_name": "REBORN QUEENS — NEW ERA",
+      "full_name": "Trần Huỳnh Kim Thoa",
+      "telegram": "@KimThov",
+      "department": "Business Development",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 9
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260729140552-D0CT",
+      "location": "SGN",
+      "performance_name": "REBORN QUEENS — NEW ERA",
+      "full_name": "Dương Nữ Quỳnh Chi",
+      "telegram": "@chidnq",
+      "department": "Business Development",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 10
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260729140552-D0CT",
+      "location": "SGN",
+      "performance_name": "REBORN QUEENS — NEW ERA",
+      "full_name": "Trịnh Thuý Trinh",
+      "telegram": "@TrinhTTrinh",
+      "department": "Business Development",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 11
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260729140552-D0CT",
+      "location": "SGN",
+      "performance_name": "REBORN QUEENS — NEW ERA",
+      "full_name": "Trần Hải Duyên",
+      "telegram": "@haidien0927",
+      "department": "Business Development",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 12
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260729140552-D0CT",
+      "location": "SGN",
+      "performance_name": "REBORN QUEENS — NEW ERA",
+      "full_name": "Nguyễn Thị Hồng Liên",
+      "telegram": "@chloenguyen104",
+      "department": "Business Development",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 13
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260729140552-D0CT",
+      "location": "SGN",
+      "performance_name": "REBORN QUEENS — NEW ERA",
+      "full_name": "Trần Phương Trà My",
+      "telegram": "@mytran10",
+      "department": "Business Development",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 14
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260729140552-D0CT",
+      "location": "SGN",
+      "performance_name": "REBORN QUEENS — NEW ERA",
+      "full_name": "Nguyễn Minh Ngọc Bích",
+      "telegram": "@bichnmn",
+      "department": "Business Development",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 15
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260729140552-D0CT",
+      "location": "SGN",
+      "performance_name": "REBORN QUEENS — NEW ERA",
+      "full_name": "Lê Vũ Phương Thảo",
+      "telegram": "@thaoleBDG",
+      "department": "Business Development",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 16
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260729140552-D0CT",
+      "location": "SGN",
+      "performance_name": "REBORN QUEENS — NEW ERA",
+      "full_name": "Nguyễn Ngọc Anh Thư",
+      "telegram": "@thunna_sme_ba_exe",
+      "department": "Business Development",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 17
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260729140552-D0CT",
+      "location": "SGN",
+      "performance_name": "REBORN QUEENS — NEW ERA",
+      "full_name": "Vương Thị Ngọc Phương",
+      "telegram": "@chemeden",
+      "department": "Business Development",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 18
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260729141247-EB0Y",
+      "location": "HAN",
+      "performance_name": "Nộp sau nhé",
+      "full_name": "Lê Hoàng Nhất Thống",
+      "telegram": "@Harrison1910",
+      "department": "Business Development",
+      "is_representative": true,
+      "role": "Đại diện",
+      "_meta": {
+        "source_row": 19
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260729141247-EB0Y",
+      "location": "HAN",
+      "performance_name": "Nộp sau nhé",
+      "full_name": "Nguyễn Thị Thơ",
+      "telegram": "@thor3046",
+      "department": "Business Development",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 20
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260729141247-EB0Y",
+      "location": "HAN",
+      "performance_name": "Nộp sau nhé",
+      "full_name": "Lưu Thị Hoài Thương",
+      "telegram": "@Thuongluu0801",
+      "department": "Business Development",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 21
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260730102549-QG2O",
+      "location": "HAN",
+      "performance_name": "Mười Một Năm — Một Chặng Đường",
+      "full_name": "Cao Nhân Quyền",
+      "telegram": "@quyencn",
+      "department": "Central Operations",
+      "is_representative": true,
+      "role": "Đại diện",
+      "_meta": {
+        "source_row": 22
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260730102549-QG2O",
+      "location": "HAN",
+      "performance_name": "Mười Một Năm — Một Chặng Đường",
+      "full_name": "Phạm Lê Phương Thảo",
+      "telegram": "@thaoplp",
+      "department": "Central Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 23
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260730102549-QG2O",
+      "location": "HAN",
+      "performance_name": "Mười Một Năm — Một Chặng Đường",
+      "full_name": "Lưu Đăng Lượng",
+      "telegram": "@luongluu2003",
+      "department": "Supply Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 24
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260730102549-QG2O",
+      "location": "HAN",
+      "performance_name": "Mười Một Năm — Một Chặng Đường",
+      "full_name": "Nguyễn Phương Thuý",
+      "telegram": "@phgthuy",
+      "department": "Supply Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 25
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260730102549-QG2O",
+      "location": "HAN",
+      "performance_name": "Mười Một Năm — Một Chặng Đường",
+      "full_name": "Bùi Thu Hòa",
+      "telegram": "@hanchihl",
+      "department": "Supply Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 26
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260730102549-QG2O",
+      "location": "HAN",
+      "performance_name": "Mười Một Năm — Một Chặng Đường",
+      "full_name": "Trần Thị Huệ",
+      "telegram": "@huehuetth",
+      "department": "Supply Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 27
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260730102549-QG2O",
+      "location": "HAN",
+      "performance_name": "Mười Một Năm — Một Chặng Đường",
+      "full_name": "Lại Quốc Hoàng",
+      "telegram": "@qhoang08",
+      "department": "Supply Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 28
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260730102549-QG2O",
+      "location": "HAN",
+      "performance_name": "Mười Một Năm — Một Chặng Đường",
+      "full_name": "Hoàng Công Duy",
+      "telegram": "@duyhoangv2",
+      "department": "Supply Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 29
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260730102549-QG2O",
+      "location": "HAN",
+      "performance_name": "Mười Một Năm — Một Chặng Đường",
+      "full_name": "Nguyễn Tiến Hòa",
+      "telegram": "@hoant99",
+      "department": "Central Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 30
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260730173814-KWAY",
+      "location": "SGN",
+      "performance_name": "ĐẢO BÔNG HẬU",
+      "full_name": "Trần Mỹ Vân",
+      "telegram": "@vantran247",
+      "department": "Supply Operations",
+      "is_representative": true,
+      "role": "Đại diện",
+      "_meta": {
+        "source_row": 31
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260730173814-KWAY",
+      "location": "SGN",
+      "performance_name": "ĐẢO BÔNG HẬU",
+      "full_name": "Lê Phương Khanh",
+      "telegram": "@Lephuongkhanh",
+      "department": "Supply Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 32
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260730173814-KWAY",
+      "location": "SGN",
+      "performance_name": "ĐẢO BÔNG HẬU",
+      "full_name": "Ngô Huỳnh Khoa",
+      "telegram": "@HKhoango98",
+      "department": "Supply Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 33
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260730173814-KWAY",
+      "location": "SGN",
+      "performance_name": "ĐẢO BÔNG HẬU",
+      "full_name": "Ngụy Bá Thanh Sơn",
+      "telegram": "@sonnguy",
+      "department": "Supply Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 34
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260730173814-KWAY",
+      "location": "SGN",
+      "performance_name": "ĐẢO BÔNG HẬU",
+      "full_name": "Nguyễn Thị Quỳnh Anh",
+      "telegram": "@QuynhAnh92",
+      "department": "Supply Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 35
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260730173814-KWAY",
+      "location": "SGN",
+      "performance_name": "ĐẢO BÔNG HẬU",
+      "full_name": "Nguyễn Thị Mỹ Tiên",
+      "telegram": "@tienmymy",
+      "department": "Supply Operations",
+      "is_representative": false,
+      "role": "Thành viên",
+      "_meta": {
+        "source_row": 36
+      }
+    },
+    {
+      "registration_code": "AHA26-HAN-260731094842-EY51",
+      "location": "HAN",
+      "performance_name": "Xe đạp",
+      "full_name": "Chu Minh Khánh",
+      "telegram": "@khanhchu1",
+      "department": "Business Development",
+      "is_representative": true,
+      "role": "Đại diện",
+      "_meta": {
+        "source_row": 37
+      }
+    },
+    {
+      "registration_code": "AHA26-SGN-260731100442-08NQ",
+      "location": "SGN",
+      "performance_name": "Chuyển nhịp",
+      "full_name": "Nguyễn Phi Yến",
+      "telegram": "@yennp",
+      "department": "Platform",
+      "is_representative": true,
+      "role": "Đại diện",
+      "_meta": {
+        "source_row": 38
+      }
+    }
+  ],
+  "issues": {},
+  "rejected": []
+}

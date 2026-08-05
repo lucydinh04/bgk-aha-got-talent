@@ -1,0 +1,37 @@
+# Render blueprint — https://render.com/docs/blueprint-spec
+#
+# Điểm sống còn: `disk`. Không có nó, file SQLite nằm trên filesystem ephemeral
+# và mọi điểm chấm biến mất ở lần deploy kế tiếp.
+#
+# Không đặt secret ở đây. `sync: false` nghĩa là Render sẽ hỏi giá trị lúc tạo
+# service và giữ nó trong dashboard, không nằm trong git.
+
+services:
+  - type: web
+    name: aha-got-talent
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter # cần plan có disk; free tier không mount disk được
+    region: singapore # gần Việt Nam nhất — độ trễ SSE tới màn LED
+    healthCheckPath: /api/health
+
+    disk:
+      name: aha-data
+      mountPath: /data
+      sizeGB: 1
+
+    envVars:
+      - key: AHA_DB_PATH
+        value: /data/aha.db
+      - key: NODE_ENV
+        value: production
+      # Render tự cấp RENDER_EXTERNAL_URL; đặt thêm biến này khi dùng domain riêng.
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: GOOGLE_SHEET_ID
+        sync: false
+      - key: HEALTH_CHECK_TOKEN
+        sync: false

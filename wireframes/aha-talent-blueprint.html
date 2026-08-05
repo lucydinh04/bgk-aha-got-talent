@@ -1,0 +1,2569 @@
+<title>AHA GOT TALENT 2026 — Blueprint hệ thống chấm điểm</title>
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   AHA GOT TALENT 2026 — Blueprint
+   Ngôn ngữ hình ảnh: cue sheet / technical rider sân khấu.
+   Wireframe để nguyên greyscale (cấu trúc, chưa phải UI). Nhận diện chương
+   trình nằm ở phần khung tài liệu. Cam chỉ dùng cho cue number và CTA.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --ink:        #060A12;
+  --panel:      #0E1A2B;
+  --panel-2:    #132539;
+  --line:       #1E3A5C;
+  --line-soft:  #16283E;
+  --silver:     #93A2B5;   /* neutral lệch xanh — chọn, không phải mặc định */
+  --silver-dim: #64748B;
+  --chalk:      #E8EEF6;
+  --cyan:       #3ED8F0;
+  --orange:     #FF7F32;
+
+  /* wireframe: greyscale thật, để không lẫn với design cuối */
+  --wf-bg:      #16202C;
+  --wf-block:   #26333F;
+  --wf-block-2: #303F4D;
+  --wf-text:    #5C6C7C;
+  --wf-text-hi: #8697A6;
+  --wf-line:    #354654;
+
+  --ok:      #34D399;
+  --warn:    #FBBF24;
+  --danger:  #F87171;
+  --locked:  #A78BFA;
+
+  --display: "Arial Narrow", "Roboto Condensed", "Oswald",
+             Haettenschweiler, Impact, sans-serif;
+  --body:    Lexend, "SF Pro Text", -apple-system, BlinkMacSystemFont,
+             "Segoe UI", system-ui, sans-serif;
+  --mono:    "SF Mono", ui-monospace, "JetBrains Mono", Menlo,
+             "Cascadia Mono", monospace;
+
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+
+  --bg: var(--ink);
+  --fg: var(--chalk);
+  --muted: var(--silver);
+  --surface: var(--panel);
+  --surface-2: var(--panel-2);
+  --border: var(--line);
+  --border-soft: var(--line-soft);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #EDF0F4;
+    --fg: #0B1F38;
+    --muted: #4A5C72;
+    --surface: #FFFFFF;
+    --surface-2: #F5F7FA;
+    --border: #C3CEDC;
+    --border-soft: #DBE2EB;
+    --cyan: #0A7E96;
+    --silver: #4A5C72;
+    --silver-dim: #6B7C91;
+    --chalk: #0B1F38;
+    /* wireframe trên nền sáng */
+    --wf-bg: #F5F7FA;
+    --wf-block: #DFE5EC;
+    --wf-block-2: #CFD8E2;
+    --wf-text: #8494A6;
+    --wf-text-hi: #5A6B7E;
+    --wf-line: #C3CEDC;
+    --ok: #059669; --warn: #B45309; --danger: #DC2626; --locked: #7C3AED;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: var(--ink); --fg: #E8EEF6; --muted: #93A2B5;
+  --surface: #0E1A2B; --surface-2: #132539;
+  --border: #1E3A5C; --border-soft: #16283E;
+  --cyan: #3ED8F0; --silver: #93A2B5; --silver-dim: #64748B; --chalk: #E8EEF6;
+  --wf-bg: #16202C; --wf-block: #26333F; --wf-block-2: #303F4D;
+  --wf-text: #5C6C7C; --wf-text-hi: #8697A6; --wf-line: #354654;
+  --ok: #34D399; --warn: #FBBF24; --danger: #F87171; --locked: #A78BFA;
+}
+:root[data-theme="light"] {
+  --bg: #EDF0F4; --fg: #0B1F38; --muted: #4A5C72;
+  --surface: #FFFFFF; --surface-2: #F5F7FA;
+  --border: #C3CEDC; --border-soft: #DBE2EB;
+  --cyan: #0A7E96; --silver: #4A5C72; --silver-dim: #6B7C91; --chalk: #0B1F38;
+  --wf-bg: #F5F7FA; --wf-block: #DFE5EC; --wf-block-2: #CFD8E2;
+  --wf-text: #8494A6; --wf-text-hi: #5A6B7E; --wf-line: #C3CEDC;
+  --ok: #059669; --warn: #B45309; --danger: #DC2626; --locked: #7C3AED;
+}
+
+/* ── base ────────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Lưới blueprint rất mờ — gợi bản vẽ kỹ thuật, không gây ồn */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(to right, var(--border-soft) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-soft) 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: .5;
+  mask-image: radial-gradient(ellipse 100% 60% at 50% 0%, #000 0%, transparent 75%);
+}
+
+.shell { position: relative; z-index: 1; }
+
+h1, h2, h3, h4 {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .01em;
+  text-wrap: balance;
+  margin: 0;
+  line-height: .95;
+}
+
+p { margin: 0; }
+a { color: var(--cyan); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; border-radius: 2px; }
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.num  { font-variant-numeric: tabular-nums; }
+
+/* ── layout ──────────────────────────────────────────────────────────────── */
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+
+.masthead {
+  border-bottom: 1px solid var(--border);
+  padding: var(--sp-8) 0 var(--sp-6);
+}
+.masthead-grid {
+  display: grid;
+  gap: var(--sp-6);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 880px) {
+  .masthead-grid { grid-template-columns: minmax(0,1.45fr) minmax(0,1fr); align-items: end; }
+}
+
+.title-lockup { display: flex; flex-direction: column; gap: var(--sp-3); }
+.title-lockup h1 {
+  font-size: clamp(2.6rem, 7.5vw, 5.2rem);
+  letter-spacing: -.005em;
+}
+.title-lockup h1 .thin { color: var(--muted); }
+.tagline {
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: clamp(1rem, 2.4vw, 1.5rem);
+  letter-spacing: .06em;
+  color: var(--orange);
+}
+.deck {
+  color: var(--muted);
+  max-width: 58ch;
+  font-size: .95rem;
+}
+
+/* Bảng thông số hai đầu cầu — như phần header của một technical rider */
+.rider {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+}
+.rider > * {
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: .82rem;
+}
+.rider > *:nth-last-child(-n+3) { border-bottom: 0; }
+.rider .rh {
+  font-family: var(--mono);
+  font-size: .66rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--silver-dim);
+  border-right: 1px solid var(--border-soft);
+  white-space: nowrap;
+}
+.rider .rv { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.rider .rv + .rv { border-left: 1px solid var(--border-soft); }
+.rider .loc {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  letter-spacing: .05em;
+  color: var(--fg);
+}
+
+/* ── sections ────────────────────────────────────────────────────────────── */
+section { padding: var(--sp-8) 0 0; }
+section:last-of-type { padding-bottom: var(--sp-8); }
+
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--sp-3);
+  margin-bottom: var(--sp-5);
+  flex-wrap: wrap;
+}
+.sec-cue {
+  font-family: var(--mono);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  color: var(--orange);
+  border: 1px solid var(--orange);
+  padding: 2px 7px;
+  flex: none;
+  align-self: center;
+}
+.sec-head h2 { font-size: clamp(1.5rem, 3.6vw, 2.3rem); flex: 1 1 12ch; }
+.sec-head .sec-note {
+  font-family: var(--mono);
+  font-size: .7rem;
+  color: var(--silver-dim);
+  letter-spacing: .04em;
+}
+
+.lede { color: var(--muted); max-width: 68ch; margin-bottom: var(--sp-5); font-size: .93rem; }
+
+/* ── sitemap tree ────────────────────────────────────────────────────────── */
+.gates { display: grid; gap: var(--sp-4); grid-template-columns: 1fr; }
+@media (min-width: 780px) { .gates { grid-template-columns: repeat(3, 1fr); } }
+
+.gate {
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--gate-accent, var(--cyan));
+  background: var(--surface);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.gate-judge { --gate-accent: var(--orange); }
+.gate-admin { --gate-accent: var(--cyan); }
+.gate-live  { --gate-accent: var(--locked); }
+
+.gate h3 { font-size: 1.25rem; }
+.gate-auth {
+  font-family: var(--mono);
+  font-size: .66rem;
+  letter-spacing: .08em;
+  color: var(--gate-accent);
+  text-transform: uppercase;
+}
+.tree {
+  font-family: var(--mono);
+  font-size: .74rem;
+  line-height: 1.85;
+  color: var(--muted);
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+}
+.tree b { color: var(--fg); font-weight: 400; }
+.tree i { color: var(--silver-dim); font-style: normal; }
+.tree .p { color: var(--gate-accent); }
+
+/* ── cue track: chuỗi bước của một luồng ─────────────────────────────────── */
+.track-scroll { overflow-x: auto; padding-bottom: var(--sp-3); }
+.track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(178px, 1fr);
+  gap: 0;
+  min-width: min-content;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.step {
+  padding: var(--sp-3) var(--sp-3) var(--sp-4);
+  border-right: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  position: relative;
+}
+.step:last-child { border-right: 0; }
+.step-cue {
+  font-family: var(--mono);
+  font-size: .64rem;
+  letter-spacing: .1em;
+  color: var(--orange);
+}
+.step-t {
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: 1rem;
+  letter-spacing: .02em;
+  line-height: 1.05;
+}
+.step-d { font-size: .74rem; color: var(--muted); line-height: 1.45; }
+.step-sys {
+  font-family: var(--mono);
+  font-size: .64rem;
+  color: var(--cyan);
+  line-height: 1.5;
+  border-top: 1px dashed var(--border);
+  padding-top: var(--sp-2);
+  margin-top: auto;
+}
+.step-block .step-sys { color: var(--danger); }
+
+/* ── device frames ───────────────────────────────────────────────────────── */
+.frames { overflow-x: auto; padding-bottom: var(--sp-4); }
+.frames-row {
+  display: flex;
+  gap: var(--sp-4);
+  min-width: min-content;
+  align-items: flex-start;
+}
+
+figure { margin: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+figcaption {
+  font-family: var(--mono);
+  font-size: .68rem;
+  color: var(--silver-dim);
+  letter-spacing: .04em;
+  line-height: 1.5;
+}
+figcaption b { color: var(--fg); font-weight: 400; }
+
+.device {
+  background: var(--wf-bg);
+  border: 1px solid var(--border);
+  position: relative;
+  container-type: inline-size;
+}
+.device-mobile { width: 316px; flex: none; }
+.device-wide   { width: 100%; min-width: 640px; }
+
+.dbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--wf-line);
+  font-family: var(--mono);
+  font-size: .6rem;
+  color: var(--wf-text);
+  background: var(--surface-2);
+}
+.dbar .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--wf-line); flex: none; }
+.dbar .url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.screen { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+
+/* wireframe primitives */
+.wf-h  { height: 9px;  background: var(--wf-block-2); border-radius: 1px; }
+.wf-l  { height: 6px;  background: var(--wf-block);   border-radius: 1px; }
+.wf-box{ border: 1px solid var(--wf-line); background: transparent; }
+.w25{width:25%}.w33{width:33%}.w40{width:40%}.w50{width:50%}.w60{width:60%}
+.w70{width:70%}.w80{width:80%}.w90{width:90%}.w100{width:100%}
+
+.wf-label {
+  font-family: var(--mono);
+  font-size: .58rem;
+  line-height: 1.4;
+  color: var(--wf-text);
+  letter-spacing: .02em;
+}
+.wf-strong {
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: .82rem;
+  letter-spacing: .03em;
+  color: var(--wf-text-hi);
+  line-height: 1.1;
+}
+.wf-cta {
+  border: 1px solid var(--orange);
+  color: var(--orange);
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: .74rem;
+  letter-spacing: .06em;
+  text-align: center;
+  padding: 8px 6px;
+  background: transparent;
+}
+.wf-cta.ghost { border-color: var(--wf-line); color: var(--wf-text); }
+.wf-input {
+  border: 1px solid var(--wf-line);
+  padding: 7px 8px;
+  font-family: var(--mono);
+  font-size: .6rem;
+  color: var(--wf-text);
+}
+.wf-row { display: flex; gap: 6px; align-items: center; }
+.wf-col { display: flex; flex-direction: column; gap: 6px; }
+.wf-between { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.wf-sticky {
+  border-top: 1px solid var(--wf-line);
+  border-bottom: 1px solid var(--wf-line);
+  background: var(--surface-2);
+  padding: 7px 10px;
+  margin: 0 -10px;
+}
+.wf-card {
+  border: 1px solid var(--wf-line);
+  border-left: 3px solid var(--st, var(--wf-line));
+  padding: 7px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.wf-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--wf-line); }
+.wf-tab {
+  font-family: var(--mono);
+  font-size: .56rem;
+  padding: 5px 7px;
+  color: var(--wf-text);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.wf-tab[aria-current="true"] { color: var(--orange); border-bottom-color: var(--orange); }
+
+.pill {
+  font-family: var(--mono);
+  font-size: .54rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+  flex: none;
+}
+.p-todo { color: var(--wf-text); }
+.p-draft{ color: var(--warn); }
+.p-sent { color: var(--ok); }
+.p-lock { color: var(--locked); }
+.p-err  { color: var(--danger); }
+
+.bar { height: 4px; background: var(--wf-block); position: relative; overflow: hidden; }
+.bar > i { position: absolute; inset: 0 auto 0 0; background: var(--orange); display: block; }
+
+/* slider tiêu chí — chi tiết quan trọng nhất của trang chấm */
+.crit { border: 1px solid var(--wf-line); padding: 7px 8px; display: flex; flex-direction: column; gap: 6px; }
+.crit-top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.crit-w { font-family: var(--mono); font-size: .56rem; color: var(--cyan); flex: none; }
+.crit-ctl { display: flex; gap: 6px; align-items: center; }
+.crit-btn {
+  width: 26px; height: 26px; flex: none;
+  border: 1px solid var(--wf-line);
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: .7rem; color: var(--wf-text-hi);
+}
+.crit-val {
+  width: 44px; height: 26px; flex: none;
+  border: 1px solid var(--wf-text-hi);
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: .68rem; color: var(--wf-text-hi);
+  font-variant-numeric: tabular-nums;
+}
+.crit-slider { flex: 1; height: 26px; display: flex; align-items: center; }
+.crit-rail { height: 3px; background: var(--wf-block-2); width: 100%; position: relative; }
+.crit-rail > i { position: absolute; inset: 0 auto 0 0; background: var(--wf-text-hi); }
+.crit-rail > b {
+  position: absolute; top: 50%; width: 13px; height: 13px;
+  transform: translate(-50%, -50%);
+  background: var(--wf-bg); border: 2px solid var(--orange); border-radius: 50%;
+}
+.crit-empty { font-family: var(--mono); font-size: .56rem; color: var(--wf-text); }
+
+/* callout numbers */
+.co {
+  position: absolute;
+  width: 19px; height: 19px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #0A0F18;
+  font-family: var(--mono);
+  font-size: .62rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  z-index: 3;
+  box-shadow: 0 0 0 2px var(--wf-bg);
+}
+
+.notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.notes li {
+  display: grid;
+  grid-template-columns: 19px 1fr;
+  gap: var(--sp-3);
+  font-size: .8rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.notes .n {
+  width: 19px; height: 19px; border-radius: 50%;
+  background: var(--orange); color: #0A0F18;
+  font-family: var(--mono); font-size: .62rem; font-weight: 700;
+  display: grid; place-items: center; margin-top: 2px;
+}
+.notes b { color: var(--fg); font-weight: 500; }
+.notes code {
+  font-family: var(--mono); font-size: .74em;
+  color: var(--cyan); background: var(--surface-2);
+  padding: 1px 4px; border: 1px solid var(--border-soft);
+}
+
+.split { display: grid; gap: var(--sp-5); grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 900px) { .split { grid-template-columns: minmax(0,1.6fr) minmax(0,1fr); } }
+
+/* ── LED frames: 16:9, type scale theo container ──────────────────────────── */
+.led {
+  aspect-ratio: 16 / 9;
+  background: radial-gradient(ellipse 120% 90% at 50% 118%, rgba(62, 216, 240, .16) 0%, transparent 62%),
+              radial-gradient(ellipse 80% 70% at 82% 8%, rgba(255, 127, 50, .1) 0%, transparent 60%),
+              linear-gradient(165deg, #0A1524 0%, #060A12 55%, #0B1A2E 100%);
+  border: 1px solid var(--border);
+  container-type: inline-size;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  align-items: center;
+  justify-items: stretch;   /* KHÔNG dùng place-items:center — grid item sẽ co
+                               theo max-content và bảng đẩy tràn khỏi khung 16:9 */
+  text-align: center;
+}
+.led::after {  /* safe margin của màn LED */
+  content: "";
+  position: absolute;
+  inset: 5%;
+  border: 1px dashed rgba(62, 216, 240, .18);
+  pointer-events: none;
+}
+.led-in {
+  position: relative;
+  z-index: 2;
+  padding: 9% 8%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.2cqw;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.led-kicker {
+  font-family: var(--mono);
+  font-size: 1.5cqw;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: #3ED8F0;
+}
+.led-h {
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: 6.4cqw;
+  line-height: .9;
+  letter-spacing: .005em;
+  color: #F2F7FF;
+  margin: 0;
+}
+.led-h.sm { font-size: 4.4cqw; }
+.led-sub {
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: 2.5cqw;
+  letter-spacing: .1em;
+  color: #FF7F32;
+}
+.led-meta {
+  font-family: var(--mono);
+  font-size: 1.6cqw;
+  letter-spacing: .12em;
+  color: #8FA3BC;
+  text-transform: uppercase;
+}
+.led-score {
+  font-family: var(--display);
+  font-size: 13cqw;
+  line-height: .85;
+  letter-spacing: .04em;
+  color: #FF7F32;
+  font-variant-numeric: tabular-nums;
+}
+.led-prog {
+  width: 46%;
+  height: 1.1cqw;
+  background: rgba(146, 170, 200, .2);
+  position: relative;
+}
+.led-prog > i { position: absolute; inset: 0 auto 0 0; background: #3ED8F0; }
+.led-count {
+  font-family: var(--display);
+  font-size: 3.4cqw;
+  letter-spacing: .06em;
+  color: #3ED8F0;
+  font-variant-numeric: tabular-nums;
+}
+.led-order {
+  font-family: var(--mono);
+  font-size: 2.2cqw;
+  color: #FF7F32;
+  letter-spacing: .16em;
+}
+.led-tag {
+  position: absolute;
+  top: 6.5%; left: 6.5%;
+  font-family: var(--mono);
+  font-size: 1.3cqw;
+  letter-spacing: .2em;
+  color: #6B819C;
+  z-index: 2;
+  text-transform: uppercase;
+}
+.led-pulse {
+  width: 2.4cqw; height: 2.4cqw; border-radius: 50%;
+  background: #3ED8F0;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
+@media (prefers-reduced-motion: reduce) {
+  .led-pulse { animation: none; opacity: .8; }
+}
+.led-blackout { background: #05080E; }
+.led-blackout .led-in { opacity: .35; }
+
+.led-grid { display: grid; gap: var(--sp-4); grid-template-columns: 1fr; }
+@media (min-width: 820px) { .led-grid { grid-template-columns: 1fr 1fr; } }
+
+/* LED: bảng trạng thái + bảng điểm.
+   KHÔNG dùng <table> ở đây: font tính bằng cqw bên trong container query
+   tạo vòng phụ thuộc kích thước, và table box bị ghim ở min-content nên
+   tràn khỏi khung 16:9 bất kể width. Grid không có vấn đề đó. */
+.led-rows { width: 84%; max-width: 84%; display: flex; flex-direction: column; }
+.led-rows .rw {
+  display: grid;
+  grid-template-columns: 9% 1fr 36%;
+  gap: 1cqw;
+  align-items: baseline;
+  padding: .85cqw 1.2cqw;
+  border-bottom: 1px solid rgba(146, 170, 200, .16);
+  font-family: var(--mono);
+  min-width: 0;
+}
+.led-rows .rw > * { min-width: 0; overflow-wrap: anywhere; }
+.led-rows .o  { color: #FF7F32; font-size: 1.75cqw; text-align: left;
+                font-variant-numeric: tabular-nums; }
+.led-rows .nm { color: #C6D4E6; font-size: 1.75cqw; text-align: left; }
+.led-rows .st { font-size: 1.5cqw; letter-spacing: .1em; text-transform: uppercase;
+                text-align: right; color: #C6D4E6; }
+.led-rows .done { color: #34D399; }
+.led-rows .live { color: #3ED8F0; }
+.led-rows .wait { color: #6B819C; }
+.led-rows .awd  { color: #FF7F32; }
+
+.led-card { width: 82%; max-width: 82%; display: flex; flex-direction: column;
+            font-family: var(--body); }
+.led-card .rw {
+  display: grid;
+  grid-template-columns: 44% 1fr 1fr 1fr;
+  gap: 1cqw;
+  padding: .5cqw 1.2cqw;
+  border-bottom: 1px solid rgba(146, 170, 200, .16);
+  font-size: 1.6cqw;
+  color: #DCE7F5;
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+.led-card .rw > * { text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.led-card .rw > *:first-child { text-align: left; }
+.led-card .hd {
+  font-family: var(--mono); font-size: 1.05cqw;
+  letter-spacing: .16em; text-transform: uppercase; color: #7E93AE;
+}
+.led-card .wt { color: #3ED8F0; }
+.led-card .cv { color: #FF7F32; }
+
+.led-total {
+  display: flex; align-items: baseline; gap: 1.6cqw;
+  font-family: var(--display); text-transform: uppercase;
+}
+.led-total .lbl { font-size: 1.9cqw; letter-spacing: .12em; color: #8FA3BC; }
+.led-total .val { font-size: 5.2cqw; color: #FF7F32; font-variant-numeric: tabular-nums; line-height: .9; }
+.led-total .max { font-size: 2cqw; color: #6B819C; }
+
+.led-check {
+  width: 6cqw; height: 6cqw; border-radius: 50%;
+  border: .35cqw solid #34D399; color: #34D399;
+  display: grid; place-items: center;
+  font-size: 3cqw; line-height: 1;
+}
+.led-award-name {
+  font-family: var(--mono);
+  font-size: 1.9cqw; letter-spacing: .3em; text-transform: uppercase;
+  color: #FF7F32;
+  border-top: 1px solid rgba(255,127,50,.4);
+  border-bottom: 1px solid rgba(255,127,50,.4);
+  padding: .8cqw 2.4cqw;
+}
+.led-votes { font-family: var(--display); font-size: 5cqw; color: #3ED8F0; font-variant-numeric: tabular-nums; }
+.led-summary { width: 84%; max-width: 84%; display: flex; flex-direction: column; gap: 1.1cqw; }
+.led-summary .row {
+  display: grid; grid-template-columns: 28% 1fr 24%; gap: 1.6cqw;
+  align-items: baseline;
+  border-bottom: 1px solid rgba(146,170,200,.14);
+  padding-bottom: .9cqw;
+}
+.led-summary .aw { font-family: var(--mono); font-size: 1.35cqw; letter-spacing: .16em; text-transform: uppercase; color: #FF7F32; }
+.led-summary .pf { font-family: var(--display); text-transform: uppercase; font-size: 2.3cqw; color: #EDF3FB; letter-spacing: .02em; }
+.led-summary .sc { font-family: var(--display); font-size: 2.3cqw; color: #3ED8F0; font-variant-numeric: tabular-nums; }
+
+/* LED: bình chọn khán giả */
+.led-qr {
+  width: 17cqw; aspect-ratio: 1; background: #FFFFFF;
+  position: relative; flex: none;
+}
+.led-qr::before {
+  content: ""; position: absolute; inset: 1.2cqw; z-index: 0;
+  background: conic-gradient(from 0deg, #0A1524 0 25%, transparent 0 50%,
+                             #0A1524 0 75%, transparent 0);
+  background-size: 1.9cqw 1.9cqw; opacity: .9;
+}
+.led-qr i {
+  position: absolute; z-index: 1;
+  width: 4.4cqw; height: 4.4cqw;
+  border: 1.1cqw solid #0A1524; background: #fff;
+}
+.led-qr i:nth-of-type(1) { top: 1.6cqw; left: 1.6cqw; }
+.led-qr i:nth-of-type(2) { top: 1.6cqw; right: 1.6cqw; }
+.led-qr i:nth-of-type(3) { bottom: 1.6cqw; left: 1.6cqw; }
+.led-qr-row { display: flex; align-items: center; gap: 3cqw; }
+.led-qr-side { display: flex; flex-direction: column; gap: 1.2cqw; align-items: flex-start; text-align: left; }
+.led-url {
+  font-family: var(--mono); font-size: 2cqw; letter-spacing: .08em;
+  color: #3ED8F0; border-bottom: 1px solid rgba(62,216,240,.4); padding-bottom: .5cqw;
+}
+.led-countdown {
+  font-family: var(--display); font-size: 15cqw; line-height: .82;
+  color: #F2F7FF; font-variant-numeric: tabular-nums; letter-spacing: .01em;
+}
+.led-participants {
+  font-family: var(--display); text-transform: uppercase;
+  font-size: 3.2cqw; letter-spacing: .06em; color: #3ED8F0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* LED: hiệu ứng xáo trộn — payload KHÔNG chứa người thắng */
+.led-shuffle { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.4cqw; width: 88%; }
+.led-shuffle .c {
+  border: 1px solid rgba(62, 216, 240, .35);
+  background: rgba(62, 216, 240, .07);
+  padding: 1.6cqw .9cqw;
+  font-family: var(--display); text-transform: uppercase;
+  font-size: 1.55cqw; line-height: 1.1; color: #DCE7F5;
+  min-height: 9cqw; display: grid; place-items: center;
+}
+.led-shuffle .c:nth-child(1) { transform: translateY(-1.1cqw) rotate(-1.6deg); }
+.led-shuffle .c:nth-child(2) { transform: translateY(.7cqw)  rotate(1.2deg); }
+.led-shuffle .c:nth-child(3) { transform: translateY(-.5cqw) rotate(2deg); }
+.led-shuffle .c:nth-child(4) { transform: translateY(1.2cqw) rotate(-1deg); }
+
+/* LED: Voting Result Card */
+.led-vcard { width: 72%; max-width: 72%; display: flex; flex-direction: column; font-family: var(--body); }
+.led-vcard .rw {
+  display: grid; grid-template-columns: 1fr auto; gap: 1.6cqw;
+  padding: .7cqw 1.2cqw;
+  border-bottom: 1px solid rgba(146, 170, 200, .16);
+  font-size: 1.85cqw; color: #DCE7F5; text-align: left; min-width: 0;
+}
+.led-vcard .rw > span:last-child {
+  color: #3ED8F0; font-variant-numeric: tabular-nums; text-align: right;
+}
+
+/* trang /vote — thẻ chọn tiết mục */
+.vote-card {
+  border: 1px solid var(--wf-line); padding: 7px 8px;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.vote-card.on { border-color: var(--orange); background: rgba(255,127,50,.06); }
+.vote-box {
+  width: 18px; height: 18px; flex: none; margin-top: 2px;
+  border: 1px solid var(--wf-line); display: grid; place-items: center;
+  font-family: var(--mono); font-size: .6rem; color: var(--wf-bg);
+}
+.vote-card.on .vote-box { border-color: var(--orange); background: var(--orange); }
+.vote-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.vote-counter {
+  display: flex; justify-content: space-between; align-items: center;
+  border: 1px solid var(--orange); padding: 6px 8px;
+}
+.vote-counter b { font-family: var(--mono); color: var(--orange); font-size: .68rem; }
+
+/* dải phân chia hai chế độ */
+.mode-split {
+  display: flex; align-items: center; gap: var(--sp-4);
+  border: 1px solid var(--orange);
+  background: var(--surface);
+  padding: var(--sp-3) var(--sp-4);
+  margin: var(--sp-6) 0 var(--sp-5);
+  flex-wrap: wrap;
+}
+.mode-split .tag {
+  font-family: var(--mono); font-size: .64rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--orange);
+  border: 1px solid var(--orange); padding: 3px 8px; flex: none;
+}
+.mode-split p { font-size: .84rem; color: var(--muted); flex: 1 1 24ch; }
+.mode-split b { color: var(--fg); font-weight: 500; }
+
+/* checklist 7 điều kiện */
+.checklist { display: flex; flex-direction: column; gap: 5px; }
+.checklist .ck {
+  display: grid; grid-template-columns: 14px 1fr; gap: 7px;
+  align-items: start;
+  font-family: var(--mono); font-size: .58rem; line-height: 1.5;
+  color: var(--wf-text);
+}
+.checklist .ck i { font-style: normal; }
+.checklist .ok i { color: var(--ok); }
+.checklist .no i { color: var(--danger); }
+.checklist .no { color: var(--wf-text-hi); }
+
+/* ── tables ──────────────────────────────────────────────────────────────── */
+.tbl-scroll { overflow-x: auto; border: 1px solid var(--border); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: .8rem; }
+th, td {
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--mono);
+  font-size: .64rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--silver-dim);
+  white-space: nowrap;
+  background: var(--surface-2);
+}
+td.c { text-align: center; }
+tbody tr:last-child td { border-bottom: 0; }
+.cell { font-family: var(--mono); font-size: .68rem; letter-spacing: .04em; }
+
+/* ── guard rails ─────────────────────────────────────────────────────────── */
+.rails { display: grid; gap: var(--sp-4); grid-template-columns: 1fr; }
+@media (min-width: 760px) { .rails { grid-template-columns: 1fr 1fr; } }
+
+.rail {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.rail-id {
+  font-family: var(--mono);
+  font-size: .64rem;
+  letter-spacing: .14em;
+  color: var(--orange);
+}
+.rail h4 { font-size: 1.05rem; }
+.rail p { font-size: .82rem; color: var(--muted); }
+.rail p code {
+  font-family: var(--mono); font-size: .78em; color: var(--cyan);
+}
+
+.never {
+  border: 1px solid var(--danger);
+  background: var(--surface);
+  padding: var(--sp-4) var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.never h4 { font-size: 1.05rem; color: var(--danger); }
+.never ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: var(--sp-1); }
+.never li { font-size: .84rem; color: var(--muted); }
+.never li b { color: var(--fg); font-weight: 500; }
+
+footer {
+  border-top: 1px solid var(--border);
+  padding: var(--sp-5) 0 var(--sp-7);
+  font-family: var(--mono);
+  font-size: .7rem;
+  color: var(--silver-dim);
+  line-height: 1.7;
+  letter-spacing: .03em;
+}
+</style>
+
+<div class="shell">
+
+<!-- ══ MASTHEAD ══════════════════════════════════════════════════════════ -->
+<header class="masthead">
+  <div class="wrap masthead-grid">
+    <div class="title-lockup">
+      <span class="eyebrow">Blueprint · Giai đoạn 1–2 · 02/08/2026</span>
+      <h1>Aha Got<br>Talent <span class="thin">2026</span></h1>
+      <span class="tagline">Hệ thống chấm điểm · Unlock Your Next Move</span>
+      <p class="deck">
+        Kiến trúc và wireframe cho toàn bộ vòng đời một đêm diễn: Ban Giám khảo chấm trên
+        điện thoại, Ban Tổ chức theo dõi tiến độ và chốt kết quả, màn LED báo tiến độ,
+        khán giả bình chọn trong 3 phút, và phần công bố giải đọc từ snapshot đã đóng
+        băng. Wireframe để nguyên greyscale — đây là bản vẽ cấu trúc, chưa phải giao
+        diện hoàn chỉnh.
+      </p>
+    </div>
+
+    <div class="rider" role="table" aria-label="Thông số hai đầu cầu">
+      <span class="rh">Đầu cầu</span>
+      <span class="rv loc">SGN</span>
+      <span class="rv loc">HAN</span>
+
+      <span class="rh">Ngày diễn</span>
+      <span class="rv">07/08/2026</span>
+      <span class="rv">14/08/2026</span>
+
+      <span class="rh">Tiết mục</span>
+      <span class="rv">4</span>
+      <span class="rv">4</span>
+
+      <span class="rh">Thời lượng</span>
+      <span class="rv">16 phút</span>
+      <span class="rv">18 phút</span>
+
+      <span class="rh">Thành viên</span>
+      <span class="rv">22</span>
+      <span class="rv">15</span>
+
+      <span class="rh">Giải thưởng</span>
+      <span class="rv">4 giải</span>
+      <span class="rv">2 giải</span>
+
+      <span class="rh">LED</span>
+      <span class="rv">/live/sgn</span>
+      <span class="rv">/live/han</span>
+
+      <span class="rh">Bình chọn</span>
+      <span class="rv">/vote/sgn</span>
+      <span class="rv">chưa bật</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══ SITEMAP ═══════════════════════════════════════════════════════════ -->
+<section id="sitemap">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-cue">CUE 00</span>
+      <h2>Ba lối vào, ba mức bảo mật</h2>
+      <span class="sec-note">sitemap</span>
+    </div>
+    <p class="lede">
+      Ba nhóm người dùng không bao giờ dùng chung một cánh cửa. Mỗi nhóm có link riêng
+      gửi được qua email hoặc Telegram, và cơ chế xác thực tương ứng với mức rủi ro của
+      dữ liệu phía sau. Đầu cầu nằm trong URL chứ không nằm trong session — BGK chấm cả
+      hai đầu cầu không phải đăng xuất giữa hai đêm.
+    </p>
+
+    <div class="gates">
+      <div class="gate gate-judge">
+        <span class="gate-auth">Magic link · 10 phút · một lần</span>
+        <h3>Ban Giám khảo</h3>
+        <pre class="tree"><span class="p">/judge</span>            <i>login chung</i>
+<span class="p">/judge/sgn</span>        <i>login SGN</i>
+  ├ <b>dashboard</b>
+  ├ <b>performance/</b><i>[mã]</i>
+  └ <b>result/</b><i>[mã]</i>
+<span class="p">/judge/han</span>        <i>…y hệt</i>
+
+<span class="p">/auth/callback</span>    <i>xác thực</i>
+<span class="p">/auth/error</span>       <i>7 trạng thái</i></pre>
+      </div>
+
+      <div class="gate gate-admin">
+        <span class="gate-auth">Password + MFA · session 12h</span>
+        <h3>Ban Tổ chức</h3>
+        <pre class="tree"><span class="p">/admin/login</span>
+<span class="p">/admin/dashboard</span>  <i>2 card</i>
+<span class="p">/admin/sgn</span>
+  ├ <b>progress</b>
+  │  ├ judge/<i>[id]</i>
+  │  └ performance/<i>[mã]</i>
+  ├ <b>results</b>      <i>BXH SGN</i>
+  ├ <b>rundown</b>      <i>kéo thả</i>
+  ├ <b>live-control</b>
+  └ <b>live-preview</b>
+<span class="p">/admin/han</span>        <i>…y hệt</i>
+<span class="p">/admin/</span><b>judges</b>
+<span class="p">/admin/</span><b>performances</b>
+<span class="p">/admin/</span><b>sync</b>
+<span class="p">/admin/</span><b>settings</b>
+<span class="p">/admin/</span><b>audit</b>     <i>super</i></pre>
+      </div>
+
+      <div class="gate gate-live">
+        <span class="gate-auth">Public · read-only · không auth</span>
+        <h3>Màn hình LED</h3>
+        <pre class="tree"><span class="p">/live/sgn</span>         <i>1920×1080</i>
+<span class="p">/live/han</span>         <i>fullscreen</i>
+
+<i>Đọc được đúng 2 bảng:</i>
+  <b>public_progress</b>
+  <b>live_display_state</b>
+
+<i>Không có đường nào</i>
+<i>tới bảng</i> <b>scores</b><i>.</i>
+<i>Điểm chỉ tới LED qua</i>
+<b>published_score</b><i>, ghi</i>
+<i>bởi RPC công bố</i>
+<i>hai bước.</i></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FLOW 1 — JUDGE ════════════════════════════════════════════════════ -->
+<section id="flow-judge">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-cue">CUE 01</span>
+      <h2>BGK đăng nhập → chấm điểm → gửi điểm</h2>
+      <span class="sec-note">mobile-first · 375px · một tay</span>
+    </div>
+    <p class="lede">
+      BGK chấm khi đèn vừa tắt, tiết mục sau đã lên sân khấu, và wifi hội trường thì
+      chập chờn. Nên mọi thao tác phải nằm trong tầm ngón cái, mỗi thay đổi ghi xuống
+      IndexedDB trước rồi mới lên server, và không tiêu chí nào có giá trị mặc định —
+      điểm 0 và điểm chưa chấm là hai chuyện khác nhau.
+    </p>
+
+    <div class="track-scroll">
+      <div class="track">
+        <div class="step">
+          <span class="step-cue">01.1</span>
+          <span class="step-t">Mở link</span>
+          <span class="step-d">Nhận <span class="mono">/judge/sgn</span> qua email hoặc Telegram.</span>
+          <span class="step-sys">không cần tài khoản</span>
+        </div>
+        <div class="step">
+          <span class="step-cue">01.2</span>
+          <span class="step-t">Nhập email</span>
+          <span class="step-d">Email công ty. Rate limit 5 lần/giờ.</span>
+          <span class="step-sys">signInWithOtp<br>shouldCreateUser: false</span>
+        </div>
+        <div class="step step-block">
+          <span class="step-cue">01.3</span>
+          <span class="step-t">Phản hồi trung tính</span>
+          <span class="step-d">“Kiểm tra email của bạn” — giống nhau cho mọi email.</span>
+          <span class="step-sys">chưa kiểm danh sách BGK<br>tránh lộ ai là giám khảo</span>
+        </div>
+        <div class="step">
+          <span class="step-cue">01.4</span>
+          <span class="step-t">Nhấn link</span>
+          <span class="step-d">Callback kiểm 4 điều kiện rồi mới cho vào.</span>
+          <span class="step-sys">hạn · đã dùng · là BGK<br>· đúng đầu cầu</span>
+        </div>
+        <div class="step">
+          <span class="step-cue">01.5</span>
+          <span class="step-t">Dashboard</span>
+          <span class="step-d">Chỉ tiết mục được phân công, chỉ đầu cầu của mình.</span>
+          <span class="step-sys">judging_status ≥ ready</span>
+        </div>
+        <div class="step">
+          <span class="step-cue">01.6</span>
+          <span class="step-t">Chấm 5 tiêu chí</span>
+          <span class="step-d">Slider · ô số · ±1. Không có điểm mặc định.</span>
+          <span class="step-sys">IndexedDB ~1ms<br>→ debounce 800ms → API</span>
+        </div>
+        <div class="step">
+          <span class="step-cue">01.7</span>
+          <span class="step-t">Xác nhận</span>
+          <span class="step-d">Modal nhắc rằng vẫn sửa được nếu BTC chưa khóa.</span>
+          <span class="step-sys">idempotency_key sinh 1 lần</span>
+        </div>
+        <div class="step">
+          <span class="step-cue">01.8</span>
+          <span class="step-t">Đã ghi nhận</span>
+          <span class="step-d">Chấm tiếp · về danh sách · xem lại.</span>
+          <span class="step-sys">trigger → public_progress<br>→ Admin + LED</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="frames" style="margin-top: var(--sp-5)">
+      <div class="frames-row">
+
+        <!-- Judge login -->
+        <figure>
+          <div class="device device-mobile">
+            <div class="dbar"><span class="dot"></span><span class="url">aha-talent.vercel.app/judge/sgn</span></div>
+            <div class="screen" style="gap:14px; padding-top:26px">
+              <div class="co" style="top:60px; right:-9px">1</div>
+              <div class="wf-col" style="gap:4px">
+                <span class="wf-label">AHA GOT TALENT 2026</span>
+                <span class="wf-strong" style="font-size:1.15rem">Ban giám khảo</span>
+              </div>
+              <span class="wf-label">Nhập email công ty để truy cập hệ thống chấm điểm.</span>
+              <div class="wf-col" style="margin-top:6px">
+                <span class="wf-label">Email công ty</span>
+                <div class="wf-input">ten@ahamove.com</div>
+              </div>
+              <div class="wf-cta">Tiếp tục</div>
+              <div class="co" style="top:212px; right:-9px">2</div>
+              <div class="wf-box" style="padding:7px 8px; border-style:dashed">
+                <span class="wf-label">Đầu cầu <b style="color:var(--orange)">SGN</b> · 07/08/2026<br>Đã nhận diện từ đường link</span>
+              </div>
+              <div style="height:1px; background:var(--wf-line); margin:4px 0"></div>
+              <span class="wf-label" style="color:var(--wf-text)">Link có hiệu lực 10 phút và chỉ dùng được một lần.</span>
+            </div>
+          </div>
+          <figcaption><b>01.2</b> /judge/sgn — đăng nhập</figcaption>
+        </figure>
+
+        <!-- Judge dashboard -->
+        <figure>
+          <div class="device device-mobile">
+            <div class="dbar"><span class="dot"></span><span class="url">/judge/sgn/dashboard</span></div>
+            <div class="screen">
+              <div class="wf-between">
+                <div class="wf-col" style="gap:3px">
+                  <span class="wf-strong">Xin chào, BGK 01</span>
+                  <span class="wf-label">Aha Got Talent 2026 · SGN · 07/08</span>
+                </div>
+                <span class="pill p-todo">SGN</span>
+              </div>
+
+              <div class="co" style="top:76px; right:-9px">3</div>
+              <div class="wf-box" style="padding:8px">
+                <div class="wf-between" style="margin-bottom:6px">
+                  <span class="wf-label">Tiến độ của bạn</span>
+                  <span class="wf-label" style="color:var(--wf-text-hi)">2/4</span>
+                </div>
+                <div class="bar"><i style="width:50%"></i></div>
+                <div class="wf-row" style="margin-top:7px; gap:10px; flex-wrap:wrap">
+                  <span class="wf-label">Đã gửi <b style="color:var(--ok)">2</b></span>
+                  <span class="wf-label">Nháp <b style="color:var(--warn)">1</b></span>
+                  <span class="wf-label">Chưa chấm <b>1</b></span>
+                  <span class="wf-label">Đã khóa <b>0</b></span>
+                </div>
+              </div>
+
+              <div class="wf-tabs">
+                <span class="wf-tab" aria-current="true">Tất cả</span>
+                <span class="wf-tab">Chưa chấm</span>
+                <span class="wf-tab">Đang chấm</span>
+                <span class="wf-tab">Đã gửi</span>
+              </div>
+
+              <div class="co" style="top:243px; right:-9px">4</div>
+              <div class="wf-card" style="--st: var(--wf-text)">
+                <div class="wf-between">
+                  <span class="wf-label" style="color:var(--orange)">#01</span>
+                  <span class="pill p-todo">Chưa chấm</span>
+                </div>
+                <span class="wf-strong">Bí mật chỉ chờ ngày bật mí!</span>
+                <span class="wf-label">Nhóm · Kịch / Hài / Nhạc kịch · 4 phút</span>
+                <span class="wf-label">Central Operations · 4 thành viên</span>
+                <div class="wf-cta" style="padding:6px">Chấm điểm</div>
+              </div>
+
+              <div class="wf-card" style="--st: var(--warn)">
+                <div class="wf-between">
+                  <span class="wf-label" style="color:var(--orange)">#02</span>
+                  <span class="pill p-draft">Đang chấm</span>
+                </div>
+                <span class="wf-strong">Reborn Queens — New Era</span>
+                <span class="wf-label">Nhóm · Nhảy / Múa · 4 phút</span>
+                <span class="wf-label">Business Development · 11 thành viên</span>
+                <div class="wf-between">
+                  <span class="wf-label">Điểm tạm tính của bạn <b style="color:var(--wf-text-hi)">— 3/5 tiêu chí</b></span>
+                </div>
+                <div class="wf-cta ghost" style="padding:6px">Tiếp tục chấm</div>
+              </div>
+
+              <div class="wf-card" style="--st: var(--ok)">
+                <div class="wf-between">
+                  <span class="wf-label" style="color:var(--orange)">#03</span>
+                  <span class="pill p-sent">Đã gửi</span>
+                </div>
+                <span class="wf-strong">Đảo Bông Hậu</span>
+                <span class="wf-label">Nhóm · Kịch / Hài · 5 phút</span>
+                <div class="wf-between">
+                  <span class="wf-label">Điểm của bạn</span>
+                  <span class="wf-strong" style="color:var(--wf-text-hi)">84.75</span>
+                </div>
+                <div class="wf-cta ghost" style="padding:6px">Xem lại</div>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>01.5</b> /judge/sgn/dashboard</figcaption>
+        </figure>
+
+        <!-- Judge scoring -->
+        <figure>
+          <div class="device device-mobile">
+            <div class="dbar"><span class="dot"></span><span class="url">/judge/sgn/performance/…-D0CT</span></div>
+            <div class="screen" style="gap:7px">
+              <div class="co" style="top:34px; right:-9px">5</div>
+              <div class="wf-sticky">
+                <div class="wf-between">
+                  <span class="wf-label">‹ Danh sách</span>
+                  <span class="wf-label" style="color:var(--ok)">● Đã lưu 20:14</span>
+                </div>
+                <div class="wf-row" style="margin-top:4px">
+                  <span class="wf-label" style="color:var(--orange)">SGN · #02</span>
+                  <span class="wf-strong" style="font-size:.74rem">Reborn Queens</span>
+                </div>
+              </div>
+
+              <div class="wf-box" style="padding:7px 8px">
+                <span class="wf-label">
+                  <b>AHA26-SGN-260729140552-D0CT</b><br>
+                  Nhóm · Nhảy / Múa · 4 phút<br>
+                  Business Development · 11 thành viên
+                </span>
+              </div>
+              <div class="co" style="top:150px; right:-9px">6</div>
+              <div class="wf-box" style="padding:7px 8px">
+                <span class="wf-label" style="color:var(--wf-text-hi)">Mô tả ý tưởng</span>
+                <div class="wf-l w100" style="margin-top:5px"></div>
+                <div class="wf-l w90" style="margin-top:4px"></div>
+                <div class="wf-l w60" style="margin-top:4px"></div>
+                <span class="wf-label" style="color:var(--wf-text-hi); display:block; margin-top:8px">Điểm nhấn chuyển mình</span>
+                <span class="wf-label" style="display:block; margin-top:3px">Chưa có thông tin</span>
+              </div>
+
+              <div class="co" style="top:288px; right:-9px">7</div>
+              <div class="crit">
+                <div class="crit-top">
+                  <span class="wf-label" style="color:var(--wf-text-hi)">Ý tưởng &amp; sáng tạo</span>
+                  <span class="crit-w">25%</span>
+                </div>
+                <span class="wf-label">Ý tưởng mới mẻ, cách kể chuyện khác biệt.</span>
+                <div class="crit-ctl">
+                  <span class="crit-btn">−</span>
+                  <div class="crit-slider"><div class="crit-rail"><i style="width:88%"></i><b style="left:88%"></b></div></div>
+                  <span class="crit-btn">+</span>
+                  <span class="crit-val">88</span>
+                </div>
+                <div class="wf-between">
+                  <span class="wf-label" style="color:var(--ok)">Rất tốt</span>
+                  <span class="wf-label">Quy đổi <b style="color:var(--wf-text-hi)">22.00</b></span>
+                </div>
+              </div>
+
+              <div class="crit">
+                <div class="crit-top">
+                  <span class="wf-label" style="color:var(--wf-text-hi)">Chất lượng biểu diễn</span>
+                  <span class="crit-w">25%</span>
+                </div>
+                <div class="crit-ctl">
+                  <span class="crit-btn">−</span>
+                  <div class="crit-slider"><div class="crit-rail"><i style="width:0"></i><b style="left:0"></b></div></div>
+                  <span class="crit-btn">+</span>
+                  <span class="crit-val">—</span>
+                </div>
+                <span class="crit-empty">Chưa chấm · không có giá trị mặc định</span>
+              </div>
+
+              <div class="wf-box" style="padding:6px 8px; border-style:dashed">
+                <span class="wf-label">3 tiêu chí còn lại: Chuyển mình 20% · Sức hút 20% · Phối hợp 10%</span>
+              </div>
+
+              <div class="wf-box" style="padding:7px 8px">
+                <span class="wf-label" style="color:var(--wf-text-hi)">Điểm nổi bật</span>
+                <div class="wf-box w100" style="height:26px; margin-top:5px"></div>
+                <span class="wf-label" style="color:var(--wf-text-hi); display:block; margin-top:7px">Góp ý · Ghi chú riêng cho BTC</span>
+              </div>
+
+              <div class="co" style="bottom:26px; right:-9px">8</div>
+              <div class="wf-sticky" style="margin-top:4px">
+                <div class="wf-between" style="margin-bottom:6px">
+                  <span class="wf-label">Tổng điểm</span>
+                  <span class="wf-strong" style="font-size:1.3rem; color:var(--orange)">—<span style="color:var(--wf-text); font-size:.7rem"> /100</span></span>
+                </div>
+                <div class="wf-row">
+                  <div class="wf-cta ghost" style="flex:1; padding:7px">Lưu nháp</div>
+                  <div class="wf-cta" style="flex:1.4; padding:7px; opacity:.45">Gửi điểm</div>
+                </div>
+                <span class="wf-label" style="display:block; margin-top:5px">Cần đủ 5 tiêu chí mới gửi được</span>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>01.6</b> trang chấm điểm — mobile-first</figcaption>
+        </figure>
+
+        <!-- Submit modal + offline + success -->
+        <figure>
+          <div class="device device-mobile">
+            <div class="dbar"><span class="dot"></span><span class="url">/judge/sgn/performance/…-D0CT</span></div>
+            <div class="screen" style="gap:12px">
+              <div class="co" style="top:26px; right:-9px">9</div>
+              <div class="wf-box" style="border-color:var(--warn); padding:7px 8px">
+                <span class="wf-label" style="color:var(--warn)"><b>BẠN ĐANG NGOẠI TUYẾN</b></span>
+                <span class="wf-label" style="display:block; margin-top:3px">Điểm đang được lưu trên thiết bị và sẽ tự động đồng bộ khi có kết nối.</span>
+              </div>
+
+              <div class="co" style="top:126px; right:-9px">10</div>
+              <div class="wf-box" style="padding:11px 10px; background:var(--surface-2)">
+                <span class="wf-strong">Xác nhận gửi điểm?</span>
+                <span class="wf-label" style="display:block; margin-top:6px">
+                  Điểm sẽ được ghi nhận chính thức. Bạn có thể chỉnh sửa nếu Ban Tổ chức
+                  chưa khóa kết quả.
+                </span>
+                <div class="wf-box" style="padding:6px 7px; margin-top:9px">
+                  <div class="wf-between"><span class="wf-label">Ý tưởng &amp; sáng tạo · 25%</span><span class="wf-label" style="color:var(--wf-text-hi)">88</span></div>
+                  <div class="wf-between"><span class="wf-label">Chất lượng · 25%</span><span class="wf-label" style="color:var(--wf-text-hi)">85</span></div>
+                  <div class="wf-between"><span class="wf-label">Chuyển mình · 20%</span><span class="wf-label" style="color:var(--wf-text-hi)">82</span></div>
+                  <div class="wf-between"><span class="wf-label">Sức hút · 20%</span><span class="wf-label" style="color:var(--wf-text-hi)">84</span></div>
+                  <div class="wf-between"><span class="wf-label">Phối hợp · 10%</span><span class="wf-label" style="color:var(--wf-text-hi)">80</span></div>
+                  <div class="wf-between" style="border-top:1px solid var(--wf-line); margin-top:5px; padding-top:5px">
+                    <span class="wf-label" style="color:var(--wf-text-hi)">TỔNG ĐIỂM</span>
+                    <span class="wf-strong" style="color:var(--orange)">84.75</span>
+                  </div>
+                </div>
+                <div class="wf-row" style="margin-top:9px">
+                  <div class="wf-cta ghost" style="flex:1; padding:7px">Quay lại</div>
+                  <div class="wf-cta" style="flex:1.3; padding:7px">Gửi điểm</div>
+                </div>
+              </div>
+
+              <div class="co" style="bottom:34px; right:-9px">11</div>
+              <div class="wf-box" style="padding:12px 10px; text-align:center; border-color:var(--ok)">
+                <span class="wf-label" style="color:var(--ok)">✓</span>
+                <span class="wf-strong" style="display:block; margin-top:5px">Đã ghi nhận điểm</span>
+                <div class="wf-col" style="margin-top:10px">
+                  <div class="wf-cta" style="padding:7px">Chấm tiết mục tiếp theo</div>
+                  <div class="wf-cta ghost" style="padding:7px">Về danh sách</div>
+                  <div class="wf-cta ghost" style="padding:7px">Xem lại điểm</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>01.7–01.8</b> offline · xác nhận · đã ghi nhận</figcaption>
+        </figure>
+
+      </div>
+    </div>
+
+    <ul class="notes" style="margin-top: var(--sp-5)">
+      <li><span class="n">1</span><span>Chỉ một trường email. Không mật khẩu, không tạo tài khoản — BGK là khách mời, không phải người dùng thường xuyên.</span></li>
+      <li><span class="n">2</span><span>Đầu cầu lấy từ đường link, BGK <b>không tự đổi được</b>. Nếu email không có phân công SGN, callback trả về lỗi <code>wrong_location</code> — nhưng chỉ sau khi BGK đã nhấn link, để không lộ danh sách giám khảo.</span></li>
+      <li><span class="n">3</span><span>Tiến độ là của <b>riêng BGK này</b>. Không có điểm trung bình, không có thứ hạng, không có tiến độ của BGK khác ở bất kỳ đâu trong luồng Judge.</span></li>
+      <li><span class="n">4</span><span>Card mang <b>STT biểu diễn</b> (do BTC xếp ở rundown) chứ không phải thứ tự dòng Google Sheet. Không có email, SĐT, Telegram thí sinh — allow-list ở tầng server chặn sẵn.</span></li>
+      <li><span class="n">5</span><span>Header sticky luôn hiện trạng thái lưu. Đây là thứ BGK cần nhìn thấy nhiều nhất giữa hai tiết mục: <span class="mono">Đang lưu… · Đã lưu 20:14 · Chưa đồng bộ · Đang ngoại tuyến · Lỗi lưu</span></span></li>
+      <li><span class="n">6</span><span>Trường rỗng hiện <b>“Chưa có thông tin”</b>, không phải khoảng trắng — và <b>không chặn chấm</b>. <span class="mono">Nộp sau nhé</span>, <span class="mono">Bí mật</span>, <span class="mono">Không áp dụng</span> là dữ liệu chưa hoàn thiện, không phải lỗi hệ thống.</span></li>
+      <li><span class="n">7</span><span>Mỗi tiêu chí có bốn cách nhập: slider, ô số, ±1. Vùng chạm ≥ 44px, slider cách mép ≥ 12px. Điểm quy đổi hiện ngay bên cạnh để BGK thấy trọng số đang tác động thế nào.</span></li>
+      <li><span class="n">8</span><span>Tiêu chí chưa chấm hiện <b>“—”</b> chứ không phải <b>0</b>. Tổng điểm cũng “—” cho đến khi đủ 5 tiêu chí, và nút gửi bị vô hiệu hóa — chặn ở client cho UX, chặn lại ở CHECK constraint của Postgres cho thật.</span></li>
+      <li><span class="n">9</span><span>Banner ngoại tuyến không cản thao tác. Điểm nằm ở IndexedDB, sống qua refresh, tự đẩy lên khi có mạng.</span></li>
+      <li><span class="n">10</span><span>Modal tóm tắt đủ 5 tiêu chí trước khi gửi — BGK thấy lại toàn bộ quyết định của mình ở một chỗ. <code>idempotency_key</code> sinh đúng một lần ở đây; mọi lần retry dùng lại key đó.</span></li>
+      <li><span class="n">11</span><span>Sau khi gửi, hành động mặc định là <b>chấm tiết mục tiếp theo</b> — trong đêm diễn, BGK gần như luôn muốn đi tiếp.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══ FLOW 2 — ADMIN ════════════════════════════════════════════════════ -->
+<section id="flow-admin">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-cue">CUE 02</span>
+      <h2>Admin theo dõi → khóa điểm → tổng hợp</h2>
+      <span class="sec-note">laptop · tablet · control room</span>
+    </div>
+    <p class="lede">
+      Admin không cần một dashboard đẹp, cần trả lời được đúng một câu trong mười giây:
+      <b style="color:var(--fg)">ai chưa chấm xong, tiết mục nào chưa đủ điểm.</b>
+      Vì vậy thông tin thiếu được đẩy lên trên cùng, và ma trận BGK × tiết mục là màn
+      hình chính thay cho một loạt card thống kê.
+    </p>
+
+    <div class="track-scroll">
+      <div class="track">
+        <div class="step">
+          <span class="step-cue">02.1</span>
+          <span class="step-t">Tổng quan</span>
+          <span class="step-d">Hai card SGN / HAN, không gộp số.</span>
+          <span class="step-sys">không có BXH chung</span>
+        </div>
+        <div class="step">
+          <span class="step-cue">02.2</span>
+          <span class="step-t">Ma trận tiến độ</span>
+          <span class="step-d">BGK × tiết mục, màu theo trạng thái, realtime.</span>
+          <span class="step-sys">pg:scores · location=eq.SGN</span>
+        </div>
+        <div class="step">
+          <span class="step-cue">02.3</span>
+          <span class="step-t">Nhắc BGK</span>
+          <span class="step-d">Gửi lại magic link cho người còn thiếu.</span>
+          <span class="step-sys">presence:SGN → online/offline</span>
+        </div>
+        <div class="step">
+          <span class="step-cue">02.4</span>
+          <span class="step-t">Soi tiết mục</span>
+          <span class="step-d">Điểm từng BGK, độ lệch, nhận xét.</span>
+          <span class="step-sys">performance_results<br>stddev_total</span>
+        </div>
+        <div class="step">
+          <span class="step-cue">02.5</span>
+          <span class="step-t">Khóa điểm</span>
+          <span class="step-d">6 phạm vi. Ghi người khóa, thời điểm, lý do.</span>
+          <span class="step-sys">score_locks + audit_log</span>
+        </div>
+        <div class="step step-block">
+          <span class="step-cue">02.6</span>
+          <span class="step-t">Mở khóa</span>
+          <span class="step-d">Chỉ Super Admin, bắt buộc nhập lý do.</span>
+          <span class="step-sys">Admin thường → 403</span>
+        </div>
+        <div class="step">
+          <span class="step-cue">02.7</span>
+          <span class="step-t">Xếp hạng</span>
+          <span class="step-d">Chỉ khi đủ BGK. Chưa đủ thì không xếp hạng tạm.</span>
+          <span class="step-sys">is_rankable = true</span>
+        </div>
+        <div class="step">
+          <span class="step-cue">02.8</span>
+          <span class="step-t">Xuất · công bố</span>
+          <span class="step-d">CSV/XLSX, hoặc đưa lên LED qua 2 bước.</span>
+          <span class="step-sys">publish_score(…, tên tiết mục)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="frames" style="margin-top: var(--sp-5)">
+      <div class="frames-row">
+        <figure style="flex:1; min-width:0">
+          <div class="device device-wide">
+            <div class="dbar"><span class="dot"></span><span class="url">/admin/dashboard</span></div>
+            <div class="screen" style="gap:10px">
+              <div class="wf-between">
+                <span class="wf-strong">Aha Got Talent 2026 · Ban Tổ chức</span>
+                <span class="wf-label">BGK · Tiết mục · Sync · Cấu hình</span>
+              </div>
+              <div class="co" style="top:60px; left:calc(50% - 9px)">12</div>
+              <div class="wf-row" style="align-items:stretch; gap:10px">
+                <div class="wf-box" style="flex:1; padding:10px; border-left:3px solid var(--orange)">
+                  <div class="wf-between">
+                    <span class="wf-strong" style="font-size:1.1rem">SGN</span>
+                    <span class="pill p-draft">Đang diễn ra</span>
+                  </div>
+                  <span class="wf-label" style="display:block; margin-top:2px">07/08/2026</span>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px 12px; margin-top:9px">
+                    <span class="wf-label">Tiết mục <b style="color:var(--wf-text-hi)">4</b></span>
+                    <span class="wf-label">BGK <b style="color:var(--wf-text-hi)">5</b></span>
+                    <span class="wf-label">Cần chấm <b style="color:var(--wf-text-hi)">20</b></span>
+                    <span class="wf-label">Đã xong <b style="color:var(--ok)">13</b></span>
+                    <span class="wf-label">Còn thiếu <b style="color:var(--danger)">7</b></span>
+                    <span class="wf-label">Tiến độ <b style="color:var(--wf-text-hi)">65%</b></span>
+                  </div>
+                  <div class="bar" style="margin-top:8px"><i style="width:65%"></i></div>
+                  <div class="wf-cta" style="margin-top:9px; padding:6px">Vào dashboard SGN</div>
+                </div>
+                <div class="wf-box" style="flex:1; padding:10px; border-left:3px solid var(--wf-line)">
+                  <div class="wf-between">
+                    <span class="wf-strong" style="font-size:1.1rem">HAN</span>
+                    <span class="pill p-todo">Chưa bắt đầu</span>
+                  </div>
+                  <span class="wf-label" style="display:block; margin-top:2px">14/08/2026</span>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px 12px; margin-top:9px">
+                    <span class="wf-label">Tiết mục <b style="color:var(--wf-text-hi)">4</b></span>
+                    <span class="wf-label">BGK <b style="color:var(--wf-text-hi)">5</b></span>
+                    <span class="wf-label">Cần chấm <b style="color:var(--wf-text-hi)">20</b></span>
+                    <span class="wf-label">Đã xong <b>0</b></span>
+                    <span class="wf-label">Còn thiếu <b>20</b></span>
+                    <span class="wf-label">Tiến độ <b>0%</b></span>
+                  </div>
+                  <div class="bar" style="margin-top:8px"><i style="width:0"></i></div>
+                  <div class="wf-cta ghost" style="margin-top:9px; padding:6px">Vào dashboard HAN</div>
+                </div>
+              </div>
+
+              <div class="co" style="top:156px; left:-9px">13</div>
+              <div class="wf-box" style="padding:8px 9px; border-color:var(--danger)">
+                <span class="wf-label" style="color:var(--danger)"><b>CẦN XỬ LÝ NGAY</b></span>
+                <span class="wf-label" style="display:block; margin-top:4px">SGN · 2 BGK chưa hoàn thành · 1 tiết mục chưa đủ điểm · 1 cặp đồng điểm</span>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>02.1</b> /admin/dashboard — hai đầu cầu tách hoàn toàn</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="frames" style="margin-top: var(--sp-4)">
+      <div class="frames-row">
+        <figure style="flex:1; min-width:0">
+          <div class="device device-wide">
+            <div class="dbar"><span class="dot"></span><span class="url">/admin/sgn/progress</span></div>
+            <div class="screen" style="gap:9px">
+              <div class="wf-between">
+                <span class="wf-strong">Tiến độ chấm · SGN</span>
+                <span class="wf-label" style="color:var(--ok)">● Realtime · cập nhật 20:14:32</span>
+              </div>
+              <div class="co" style="top:56px; left:14px">14</div>
+              <div class="wf-box" style="padding:7px 9px; border-color:var(--warn)">
+                <span class="wf-label" style="color:var(--warn)"><b>2 BGK chưa hoàn thành</b> · BGK 04 (2/4) · BGK 05 (1/4)</span>
+              </div>
+
+              <div class="co" style="top:112px; left:calc(60% - 9px)">15</div>
+              <div class="tbl-scroll" style="border-color:var(--wf-line); background:transparent">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>BGK</th><th>Chức danh</th>
+                      <th class="c">#01</th><th class="c">#02</th><th class="c">#03</th><th class="c">#04</th>
+                      <th class="c">Xong</th><th>Hoạt động</th><th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="cell">BGK 01</td><td class="cell">Trưởng ban</td>
+                      <td class="c"><span class="pill p-lock">Khóa</span></td>
+                      <td class="c"><span class="pill p-sent">Gửi</span></td>
+                      <td class="c"><span class="pill p-sent">Gửi</span></td>
+                      <td class="c"><span class="pill p-sent">Gửi</span></td>
+                      <td class="c cell">4/4</td><td class="cell">● online</td>
+                      <td class="cell" style="color:var(--cyan)">Chi tiết</td>
+                    </tr>
+                    <tr>
+                      <td class="cell">BGK 02</td><td class="cell">Giám khảo</td>
+                      <td class="c"><span class="pill p-lock">Khóa</span></td>
+                      <td class="c"><span class="pill p-sent">Gửi</span></td>
+                      <td class="c"><span class="pill p-sent">Gửi</span></td>
+                      <td class="c"><span class="pill p-draft">Nháp</span></td>
+                      <td class="c cell">3/4</td><td class="cell">● online</td>
+                      <td class="cell" style="color:var(--cyan)">Chi tiết</td>
+                    </tr>
+                    <tr>
+                      <td class="cell">BGK 03</td><td class="cell">Giám khảo</td>
+                      <td class="c"><span class="pill p-lock">Khóa</span></td>
+                      <td class="c"><span class="pill p-sent">Gửi</span></td>
+                      <td class="c"><span class="pill p-sent">Gửi</span></td>
+                      <td class="c"><span class="pill p-sent">Gửi</span></td>
+                      <td class="c cell">4/4</td><td class="cell">20:09</td>
+                      <td class="cell" style="color:var(--cyan)">Chi tiết</td>
+                    </tr>
+                    <tr>
+                      <td class="cell">BGK 04</td><td class="cell">Khách mời</td>
+                      <td class="c"><span class="pill p-lock">Khóa</span></td>
+                      <td class="c"><span class="pill p-sent">Gửi</span></td>
+                      <td class="c"><span class="pill p-draft">Nháp</span></td>
+                      <td class="c"><span class="pill p-todo">—</span></td>
+                      <td class="c cell">2/4</td><td class="cell">19:58</td>
+                      <td class="cell" style="color:var(--orange)">Nhắc</td>
+                    </tr>
+                    <tr>
+                      <td class="cell">BGK 05</td><td class="cell">Khách mời</td>
+                      <td class="c"><span class="pill p-lock">Khóa</span></td>
+                      <td class="c"><span class="pill p-err">Lỗi</span></td>
+                      <td class="c"><span class="pill p-todo">—</span></td>
+                      <td class="c"><span class="pill p-todo">—</span></td>
+                      <td class="c cell">1/4</td><td class="cell">offline</td>
+                      <td class="cell" style="color:var(--orange)">Nhắc</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="co" style="bottom:78px; left:14px">16</div>
+              <div class="wf-row" style="gap:8px; flex-wrap:wrap">
+                <span class="wf-label">Trạng thái:</span>
+                <span class="pill p-todo">Chưa bắt đầu</span>
+                <span class="pill p-draft">Đang chấm</span>
+                <span class="pill p-sent">Đã gửi</span>
+                <span class="pill p-err">Lỗi / thiếu</span>
+                <span class="pill p-lock">Đã khóa</span>
+              </div>
+              <div class="wf-row" style="gap:8px; flex-wrap:wrap">
+                <div class="wf-cta ghost" style="padding:6px 10px">Nhắc tất cả BGK còn thiếu</div>
+                <div class="wf-cta ghost" style="padding:6px 10px">Khóa toàn đầu cầu SGN</div>
+                <div class="wf-cta" style="padding:6px 10px">Xem bảng xếp hạng SGN</div>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>02.2–02.5</b> /admin/sgn/progress — ma trận BGK × tiết mục</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="frames" style="margin-top: var(--sp-4)">
+      <div class="frames-row">
+        <figure style="flex:1; min-width:0">
+          <div class="device device-wide">
+            <div class="dbar"><span class="dot"></span><span class="url">/admin/sgn/results</span></div>
+            <div class="screen" style="gap:9px">
+              <div class="wf-between">
+                <span class="wf-strong">Bảng xếp hạng · SGN</span>
+                <span class="wf-label">Chỉ tiết mục SGN · không gộp HAN</span>
+              </div>
+              <div class="co" style="top:56px; left:14px">17</div>
+              <div class="wf-box" style="padding:7px 9px; border-color:var(--warn)">
+                <span class="wf-label" style="color:var(--warn)"><b>CÓ TIẾT MỤC ĐỒNG ĐIỂM CẦN XỬ LÝ</b> · #02 và #03 cùng 86.05 sau 4 bước tie-break</span>
+              </div>
+              <div class="tbl-scroll" style="border-color:var(--wf-line); background:transparent">
+                <table>
+                  <thead>
+                    <tr><th>Hạng</th><th>Tiết mục</th><th>Đội thi</th>
+                      <th class="c">TB</th><th class="c">Ý tưởng</th><th class="c">Chất lượng</th>
+                      <th class="c">BGK</th><th>Hợp lệ</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="cell" style="color:var(--orange)">1</td>
+                      <td class="cell">Reborn Queens — New Era</td><td class="cell">Business Development</td>
+                      <td class="c cell" style="color:var(--wf-text-hi)">89.40</td>
+                      <td class="c cell">90.0</td><td class="c cell">88.0</td>
+                      <td class="c cell">5/5</td><td><span class="pill p-sent">Hợp lệ</span></td>
+                    </tr>
+                    <tr>
+                      <td class="cell" style="color:var(--warn)">2=</td>
+                      <td class="cell">Đảo Bông Hậu</td><td class="cell">Supply Operations</td>
+                      <td class="c cell" style="color:var(--wf-text-hi)">86.05</td>
+                      <td class="c cell">88.0</td><td class="c cell">85.0</td>
+                      <td class="c cell">5/5</td><td><span class="pill p-draft">Đồng điểm</span></td>
+                    </tr>
+                    <tr>
+                      <td class="cell" style="color:var(--warn)">2=</td>
+                      <td class="cell">Chuyển nhịp</td><td class="cell">Platform</td>
+                      <td class="c cell" style="color:var(--wf-text-hi)">86.05</td>
+                      <td class="c cell">88.0</td><td class="c cell">85.0</td>
+                      <td class="c cell">5/5</td><td><span class="pill p-draft">Đồng điểm</span></td>
+                    </tr>
+                    <tr>
+                      <td class="cell">—</td>
+                      <td class="cell">Bí mật chỉ chờ ngày bật mí!</td><td class="cell">Central Operations</td>
+                      <td class="c cell">—</td><td class="c cell">—</td><td class="c cell">—</td>
+                      <td class="c cell" style="color:var(--danger)">3/5</td>
+                      <td><span class="pill p-err">Chưa đủ điều kiện</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="co" style="bottom:44px; left:14px">18</div>
+              <div class="wf-row" style="gap:8px; flex-wrap:wrap">
+                <div class="wf-cta ghost" style="padding:6px 10px">Xuất CSV / XLSX</div>
+                <div class="wf-cta ghost" style="padding:6px 10px">Ghi quyết định BTC cho cặp đồng điểm</div>
+                <div class="wf-cta" style="padding:6px 10px">Công bố lên LED →</div>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>02.7–02.8</b> /admin/sgn/results — xếp hạng + đồng điểm</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <ul class="notes" style="margin-top: var(--sp-5)">
+      <li><span class="n">12</span><span>Hai card, hai màu viền, hai CTA riêng. Không có một con số nào cộng gộp SGN với HAN — kể cả “tổng tiến độ toàn chương trình”.</span></li>
+      <li><span class="n">13</span><span>Việc cần xử lý nằm <b>trên</b> mọi số liệu đẹp. Đây là đảo ngược có ý thức so với dashboard SaaS thông thường, nơi KPI to nằm trên và vấn đề nằm dưới.</span></li>
+      <li><span class="n">14</span><span>Dòng đầu tiên của trang tiến độ là câu trả lời cho câu hỏi duy nhất Admin đang có, viết bằng tên người và con số cụ thể.</span></li>
+      <li><span class="n">15</span><span>Ma trận thay cho biểu đồ. Mỗi ô là một bộ điểm, click vào xem 5 tiêu chí + nhận xét + lịch sử sửa. Cập nhật realtime qua <code>pg:scores</code> lọc theo <code>location</code> — không reload, không polling.</span></li>
+      <li><span class="n">16</span><span>Năm màu trạng thái đúng theo brief: xám chưa bắt đầu, vàng đang chấm, xanh đã gửi, đỏ lỗi/thiếu, tím đã khóa. Màu <b>không</b> là kênh duy nhất — mỗi pill có nhãn chữ.</span></li>
+      <li><span class="n">17</span><span>Đồng điểm thì hệ thống <b>dừng lại</b>: hai tiết mục cùng giữ hạng <span class="mono">2=</span>, và BTC phải ghi quyết định. Không tự chọn người thắng bằng bất kỳ tiêu chí ẩn nào.</span></li>
+      <li><span class="n">18</span><span>Tiết mục chưa đủ BGK chấm nằm ngoài thứ hạng, hiện <b>“Chưa đủ điều kiện”</b> — không xếp hạng tạm. Một bảng xếp hạng nửa vời trên màn hình BTC là mầm của quyết định sai.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══ FLOW 3 — LED CHẾ ĐỘ A ═══════════════════════════════════════════ -->
+<section id="flow-led">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-cue">CUE 03</span>
+      <h2>Chế độ A — theo dõi tiến độ chấm</h2>
+      <span class="sec-note">1920×1080 · 16:9 · không một con số điểm nào</span>
+    </div>
+    <p class="lede">
+      Suốt phần thi, màn LED làm đúng một việc: cho khán giả biết chương trình đang ở
+      đâu. Tiết mục nào đang diễn, BGK chấm tới đâu, tiết mục nào xong. Không tổng điểm,
+      không điểm trung bình, không thứ hạng tạm, không so sánh giữa các tiết mục — kể cả
+      khi dữ liệu đã có đủ trong database.
+    </p>
+
+    <div class="track-scroll">
+      <div class="track">
+        <div class="step"><span class="step-cue">03.1</span><span class="step-t">Chờ chương trình</span><span class="step-d">KV + countdown nếu Admin bật.</span><span class="step-sys">standby</span></div>
+        <div class="step"><span class="step-cue">03.2</span><span class="step-t">Đang biểu diễn</span><span class="step-d">STT · tên · loại hình · phòng ban.</span><span class="step-sys">performance</span></div>
+        <div class="step"><span class="step-cue">03.3</span><span class="step-t">BGK đang chấm</span><span class="step-d">Chỉ con số đếm, không tên ai.</span><span class="step-sys">judging_progress<br>← realtime tự tăng</span></div>
+        <div class="step"><span class="step-cue">03.4</span><span class="step-t">Đã chấm xong</span><span class="step-d">Xác nhận hoàn tất, không kèm điểm.</span><span class="step-sys">performance_completed<br>submitted = assigned</span></div>
+        <div class="step step-block"><span class="step-cue">03.5</span><span class="step-t">Chờ hoàn tất</span><span class="step-d">Thiếu BGK thì hiện cái này, không hiện “đã xong”.</span><span class="step-sys">không lộ BGK nào thiếu</span></div>
+        <div class="step"><span class="step-cue">03.6</span><span class="step-t">Bảng tổng trạng thái</span><span class="step-d">Sáu nhãn hợp lệ, không hơn.</span><span class="step-sys">all_performances_status</span></div>
+        <div class="step"><span class="step-cue">03.7</span><span class="step-t">Xong toàn bộ</span><span class="step-d">“BTC đang chuẩn bị công bố kết quả.”</span><span class="step-sys">all_scores_completed</span></div>
+        <div class="step step-block"><span class="step-cue">03.8</span><span class="step-t">Ẩn toàn bộ</span><span class="step-d">Một cú bấm, về KV mặc định.</span><span class="step-sys">emergency_hide<br>từ cả 14 trạng thái</span></div>
+      </div>
+    </div>
+
+    <div class="led-grid" style="margin-top: var(--sp-5)">
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">01 · standby</span>
+          <div class="led-in">
+            <span class="led-kicker">Sinh nhật Ahamove 11 tuổi</span>
+            <h3 class="led-h">Aha Got Talent 2026</h3>
+            <span class="led-sub">Unlock Your Next Move</span>
+            <span class="led-meta">SGN · 07 · 08 · 2026</span>
+            <span class="led-count">02 : 14 : 09</span>
+          </div>
+        </div>
+        <figcaption><b>standby</b> — Chờ chương trình. Countdown chỉ hiện khi Admin bật.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">02 · performance</span>
+          <div class="led-in">
+            <span class="led-order">Tiết mục 03</span>
+            <h3 class="led-h sm">Reborn Queens<br>— New Era</h3>
+            <span class="led-meta">Nhảy / Múa · Business Development</span>
+            <span class="led-sub" style="font-size:1.9cqw">Đang biểu diễn</span>
+          </div>
+        </div>
+        <figcaption><b>performance</b> — Không có điểm, không có tên BGK.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">03 · judging_progress</span>
+          <div class="led-in">
+            <span class="led-pulse" role="presentation"></span>
+            <h3 class="led-h sm">Ban Giám khảo<br>đang chấm điểm</h3>
+            <span class="led-meta">Reborn Queens — New Era</span>
+            <span class="led-count">3 / 5 BGK đã hoàn tất</span>
+            <div class="led-prog"><i style="width:60%"></i></div>
+          </div>
+        </div>
+        <figcaption><b>judging_progress</b> — Con số duy nhất tự tăng theo realtime. Không hiện BGK nào chưa chấm.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">04 · performance_completed</span>
+          <div class="led-in">
+            <span class="led-check">✓</span>
+            <h3 class="led-h sm">Đã hoàn tất<br>chấm điểm</h3>
+            <span class="led-meta">Reborn Queens — New Era</span>
+            <span class="led-kicker" style="letter-spacing:.14em; text-transform:none; font-size:1.5cqw; color:#8FA3BC">
+              Điểm số đã được ghi nhận và sẽ được công bố vào cuối chương trình.
+            </span>
+          </div>
+        </div>
+        <figcaption><b>performance_completed</b> — Chỉ xác nhận đã chấm xong. Không số điểm, không thứ hạng, không điểm trung bình.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">05 · all_performances_status</span>
+          <div class="led-in" style="gap:1.4cqw">
+            <span class="led-kicker">Aha Got Talent 2026 · SGN</span>
+            <h3 class="led-h sm" style="font-size:3.2cqw">Tiến độ chấm điểm</h3>
+            <div class="led-rows">
+              <div class="rw"><span class="o">01</span><span class="nm">Chuyển nhịp</span><span class="st done">Đã chấm xong</span></div>
+              <div class="rw"><span class="o">02</span><span class="nm">Đảo Bông Hậu</span><span class="st done">Đã chấm xong</span></div>
+              <div class="rw"><span class="o">03</span><span class="nm">Reborn Queens — New Era</span><span class="st live">BGK đang chấm</span></div>
+              <div class="rw"><span class="o">04</span><span class="nm">Bí mật chỉ chờ ngày bật mí!</span><span class="st wait">Chưa biểu diễn</span></div>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>all_performances_status</b> — Chỉ trạng thái. Không điểm, không xếp hạng, không ai đang dẫn đầu.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">06 · all_scores_completed</span>
+          <div class="led-in">
+            <span class="led-check">✓</span>
+            <h3 class="led-h sm" style="font-size:3.6cqw">Tất cả tiết mục<br>đã hoàn tất chấm điểm</h3>
+            <span class="led-kicker" style="letter-spacing:.14em; text-transform:none; font-size:1.6cqw; color:#8FA3BC">
+              Ban Tổ chức đang chuẩn bị công bố kết quả.
+            </span>
+          </div>
+        </div>
+        <figcaption><b>all_scores_completed</b> — Màn hình cuối của chế độ A. <b>Không tự chuyển</b> sang phần trao giải.</figcaption>
+      </figure>
+
+    </div>
+
+    <div class="mode-split">
+      <span class="tag">Ranh giới cứng</span>
+      <p>
+        Không có transition tự động nào đi từ chế độ A sang chế độ B. Phải qua
+        <b>7 điều kiện</b> hệ thống tự kiểm, một <b>Publishing Snapshot</b> đóng băng kết quả,
+        và Admin <b>chủ động bấm</b> BẮT ĐẦU CÔNG BỐ KẾT QUẢ.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FLOW 4 — BÌNH CHỌN KHÁN GIẢ ════════════════════════════════════ -->
+<section id="flow-vote">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-cue">CUE 04</span>
+      <h2>Bình chọn khán giả — The Crowd Magnet</h2>
+      <span class="sec-note">3 phút · toàn hội trường cùng lúc</span>
+    </div>
+    <p class="lede">
+      Ba phút, vài trăm người quét QR gần như đồng thời, và kết quả tuyệt đối không được
+      rò rỉ trước lúc reveal. Hai ràng buộc chi phối toàn bộ thiết kế:
+      <b style="color:var(--fg)">đồng hồ chỉ có một và nó nằm ở server</b>, và
+      <b style="color:var(--fg)">không endpoint nào trả về số phiếu</b> — kể cả cho chính
+      người vừa bình chọn.
+    </p>
+
+    <div class="track-scroll">
+      <div class="track">
+        <div class="step"><span class="step-cue">04.1</span><span class="step-t">Cấu hình</span><span class="step-d">Tiết mục · thời lượng · phương thức xác thực · số phiếu.</span><span class="step-sys">create_voting_session()</span></div>
+        <div class="step"><span class="step-cue">04.2</span><span class="step-t">LED hiện QR</span><span class="step-d">“Bình chọn sắp bắt đầu.” Chưa đếm ngược.</span><span class="step-sys">audience_vote_qr</span></div>
+        <div class="step"><span class="step-cue">04.3</span><span class="step-t">Mở bình chọn</span><span class="step-d">Server đặt ends_at. Countdown bắt đầu.</span><span class="step-sys">open_voting_session()<br>ends_at = now() + 180s</span></div>
+        <div class="step"><span class="step-cue">04.4</span><span class="step-t">Khán giả chọn</span><span class="step-d">Tối đa 2 phiếu, phải là 2 tiết mục khác nhau.</span><span class="step-sys">unique (ballot, performance)</span></div>
+        <div class="step"><span class="step-cue">04.5</span><span class="step-t">Gửi phiếu</span><span class="step-d">Không sửa được sau khi gửi.</span><span class="step-sys">submit_ballot()<br>ballot_token idempotent</span></div>
+        <div class="step step-block"><span class="step-cue">04.6</span><span class="step-t">Hết giờ</span><span class="step-d">API từ chối ballot mới theo server time.</span><span class="step-sys">server_received_at &gt; ends_at<br>→ after_deadline</span></div>
+        <div class="step"><span class="step-cue">04.7</span><span class="step-t">Xác minh</span><span class="step-d">7 bước loại ballot không hợp lệ.</span><span class="step-sys">verify_voting_session()</span></div>
+        <div class="step"><span class="step-cue">04.8</span><span class="step-t">Đóng băng</span><span class="step-d">Snapshot riêng, tách khỏi snapshot điểm BGK.</span><span class="step-sys">voting_result_snapshots</span></div>
+      </div>
+    </div>
+
+    <div class="frames" style="margin-top: var(--sp-5)">
+      <div class="frames-row">
+
+        <figure>
+          <div class="device device-mobile">
+            <div class="dbar"><span class="dot"></span><span class="url">/vote/sgn?s=…</span></div>
+            <div class="screen" style="gap:8px">
+              <div class="co" style="top:34px; right:-9px">19</div>
+              <div class="wf-col" style="gap:3px">
+                <span class="wf-label">Aha Got Talent 2026 · SGN</span>
+                <span class="wf-strong">Bình chọn tiết mục bạn yêu thích</span>
+                <span class="wf-label">Bạn có tối đa <b style="color:var(--orange)">2 phiếu</b> bình chọn.</span>
+              </div>
+
+              <div class="co" style="top:120px; right:-9px">20</div>
+              <div class="wf-sticky">
+                <div class="vote-counter">
+                  <span class="wf-label">Đã chọn <b>1/2</b> tiết mục</span>
+                  <span class="wf-label" style="color:var(--wf-text-hi)">02:14</span>
+                </div>
+              </div>
+
+              <div class="vote-card">
+                <span class="vote-box"></span>
+                <span class="vote-meta">
+                  <span class="wf-label" style="color:var(--orange)">#01</span>
+                  <span class="wf-strong" style="font-size:.76rem">Chuyển nhịp</span>
+                  <span class="wf-label">Cá nhân · Nhảy / Múa</span>
+                  <span class="wf-label">Nguyễn Phi Yến</span>
+                </span>
+              </div>
+
+              <div class="vote-card on">
+                <span class="vote-box">✓</span>
+                <span class="vote-meta">
+                  <span class="wf-label" style="color:var(--orange)">#02</span>
+                  <span class="wf-strong" style="font-size:.76rem">Đảo Bông Hậu</span>
+                  <span class="wf-label">Nhóm · Kịch / Hài / Nhạc kịch</span>
+                  <span class="wf-label">Trần Mỹ Vân</span>
+                </span>
+              </div>
+
+              <div class="vote-card">
+                <span class="vote-box"></span>
+                <span class="vote-meta">
+                  <span class="wf-label" style="color:var(--orange)">#03</span>
+                  <span class="wf-strong" style="font-size:.76rem">Reborn Queens — New Era</span>
+                  <span class="wf-label">Nhóm · Nhảy / Múa</span>
+                  <span class="wf-label">Trần Thiện Mỹ</span>
+                </span>
+              </div>
+
+              <div class="vote-card">
+                <span class="vote-box"></span>
+                <span class="vote-meta">
+                  <span class="wf-label" style="color:var(--orange)">#04</span>
+                  <span class="wf-strong" style="font-size:.76rem">Bí mật chỉ chờ ngày bật mí!</span>
+                  <span class="wf-label">Nhóm · Kịch / Hài / Nhạc kịch</span>
+                  <span class="wf-label">Lê Thị Hà</span>
+                </span>
+              </div>
+
+              <div class="co" style="bottom:24px; right:-9px">21</div>
+              <div class="wf-sticky" style="margin-top:4px">
+                <div class="wf-cta" style="padding:8px">Xác nhận bình chọn</div>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>04.4</b> /vote/sgn — chọn tối đa 2 tiết mục</figcaption>
+        </figure>
+
+        <figure>
+          <div class="device device-mobile">
+            <div class="dbar"><span class="dot"></span><span class="url">/vote/sgn?s=…</span></div>
+            <div class="screen" style="gap:12px">
+              <div class="co" style="top:34px; right:-9px">22</div>
+              <div class="wf-box" style="padding:11px 10px; background:var(--surface-2)">
+                <span class="wf-strong">Xác nhận lựa chọn?</span>
+                <span class="wf-label" style="display:block; margin-top:6px">
+                  Bạn sẽ không thể thay đổi bình chọn sau khi gửi.
+                </span>
+                <div class="wf-box" style="padding:6px 7px; margin-top:9px">
+                  <span class="wf-label" style="display:block">#02 · Đảo Bông Hậu</span>
+                  <span class="wf-label" style="display:block">#04 · Bí mật chỉ chờ ngày bật mí!</span>
+                </div>
+                <div class="wf-row" style="margin-top:9px">
+                  <div class="wf-cta ghost" style="flex:1; padding:7px">Quay lại</div>
+                  <div class="wf-cta" style="flex:1.3; padding:7px">Gửi bình chọn</div>
+                </div>
+              </div>
+
+              <div class="co" style="top:216px; right:-9px">23</div>
+              <div class="wf-box" style="padding:12px 10px; text-align:center; border-color:var(--ok)">
+                <span class="wf-label" style="color:var(--ok)">✓</span>
+                <span class="wf-strong" style="display:block; margin-top:5px">Bình chọn thành công</span>
+                <span class="wf-label" style="display:block; margin-top:6px">
+                  Cảm ơn bạn đã bình chọn cho tiết mục mình yêu thích.
+                </span>
+              </div>
+
+              <div class="wf-box" style="padding:7px 8px; border-style:dashed">
+                <span class="wf-label">
+                  Màn hình này <b>không</b> hiển thị số phiếu, tiết mục dẫn đầu,
+                  tỷ lệ bình chọn hay thứ hạng tạm thời. API trả về đúng
+                  <span class="mono">{ ok: true }</span>.
+                </span>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>04.5</b> xác nhận và gửi phiếu</figcaption>
+        </figure>
+
+      </div>
+    </div>
+
+    <div class="led-grid" style="margin-top: var(--sp-5)">
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">07 · audience_vote_qr</span>
+          <div class="led-in" style="gap:2cqw">
+            <h3 class="led-h sm" style="font-size:3.4cqw">Bình chọn tiết mục<br>bạn yêu thích</h3>
+            <div class="led-qr-row">
+              <div class="led-qr"><i></i><i></i><i></i></div>
+              <div class="led-qr-side">
+                <span class="led-meta" style="font-size:1.5cqw">Quét QR và chọn<br>tối đa 2 tiết mục</span>
+                <span class="led-url">aha.vn/vote/sgn</span>
+                <span class="led-sub" style="font-size:1.6cqw">Bình chọn sắp bắt đầu</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>audience_vote_qr</b> — QR gắn <span class="mono">session_token</span> nên QR phiên cũ không dùng lại được. Chưa đếm ngược cho tới khi Admin bấm mở.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">08 · audience_vote_live</span>
+          <div class="led-in" style="gap:1.4cqw">
+            <span class="led-kicker">Bình chọn đang diễn ra</span>
+            <span class="led-countdown">02:14</span>
+            <div class="led-qr-row" style="gap:2.2cqw">
+              <div class="led-qr" style="width:9cqw"><i></i><i></i><i></i></div>
+              <span class="led-meta" style="font-size:1.4cqw; text-align:left">Quét QR và chọn<br>tối đa 2 tiết mục</span>
+            </div>
+            <span class="led-participants">186 khán giả đã tham gia</span>
+          </div>
+        </div>
+        <figcaption><b>audience_vote_live</b> — Con số duy nhất trên màn là <b>số ballot hợp lệ</b>, không phải tổng phiếu. Một người chọn 2 tiết mục vẫn tính là 1 khán giả.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">09 · audience_vote_closed</span>
+          <div class="led-in">
+            <h3 class="led-h sm" style="font-size:4cqw">Bình chọn<br>đã kết thúc</h3>
+            <span class="led-kicker" style="letter-spacing:.14em; text-transform:none; font-size:1.6cqw; color:#8FA3BC">
+              Ban Tổ chức đang xác nhận kết quả.
+            </span>
+          </div>
+        </div>
+        <figcaption><b>audience_vote_closed</b> — Không hiện tiết mục thắng, không tự công bố, không tự reveal Crowd Magnet.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">10 · audience_vote_ready</span>
+          <div class="led-in">
+            <span class="led-check">✓</span>
+            <h3 class="led-h sm" style="font-size:3.6cqw">Kết quả<br>đã được ghi nhận</h3>
+            <span class="led-kicker" style="letter-spacing:.14em; text-transform:none; font-size:1.5cqw; color:#8FA3BC">
+              Tiết mục được khán giả yêu thích nhất sẽ sớm được công bố.
+            </span>
+          </div>
+        </div>
+        <figcaption><b>audience_vote_ready</b> — Màn chờ. Giữ nguyên cho tới khi Admin ra hiệu lệnh công bố.</figcaption>
+      </figure>
+
+    </div>
+
+    <div class="frames" style="margin-top: var(--sp-6)">
+      <div class="frames-row">
+        <figure style="flex:1; min-width:0">
+          <div class="device device-wide">
+            <div class="dbar"><span class="dot"></span><span class="url">/admin/sgn/voting</span></div>
+            <div class="screen" style="gap:9px">
+              <div class="wf-between">
+                <div class="wf-row">
+                  <span class="wf-strong" style="color:var(--orange); font-size:1.15rem">SGN</span>
+                  <span class="wf-label">Voting Control · The Crowd Magnet</span>
+                </div>
+                <span class="wf-label" style="color:var(--ok)">● Phiên đang mở · còn 02:14</span>
+              </div>
+
+              <div class="wf-tabs">
+                <span class="wf-tab" aria-current="true">Theo dõi trực tiếp</span>
+                <span class="wf-tab">Cấu hình</span>
+                <span class="wf-tab">Kết quả nội bộ</span>
+              </div>
+
+              <div class="wf-row" style="align-items:stretch; gap:10px">
+                <div style="flex:1.25; display:flex; flex-direction:column; gap:8px">
+                  <div class="co" style="top:96px; left:-9px">24</div>
+                  <div class="wf-box" style="padding:10px; text-align:center">
+                    <span class="wf-label" style="display:block">Countdown · server time</span>
+                    <span class="wf-strong" style="display:block; font-size:2.2rem; color:var(--orange); margin-top:3px">02:14</span>
+                    <div class="bar" style="margin-top:8px"><i style="width:26%"></i></div>
+                  </div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+                    <div class="wf-box" style="padding:7px 8px">
+                      <span class="wf-label" style="display:block">Khán giả tham gia</span>
+                      <span class="wf-strong" style="color:var(--wf-text-hi)">186</span>
+                    </div>
+                    <div class="wf-box" style="padding:7px 8px">
+                      <span class="wf-label" style="display:block">Tổng phiếu đã dùng</span>
+                      <span class="wf-strong" style="color:var(--wf-text-hi)">341</span>
+                    </div>
+                    <div class="wf-box" style="padding:7px 8px">
+                      <span class="wf-label" style="display:block">Đang mở trang</span>
+                      <span class="wf-strong" style="color:var(--wf-text-hi)">42</span>
+                    </div>
+                    <div class="wf-box" style="padding:7px 8px">
+                      <span class="wf-label" style="display:block">Lỗi gửi ballot</span>
+                      <span class="wf-strong" style="color:var(--ok)">0</span>
+                    </div>
+                  </div>
+                  <div class="co" style="bottom:52px; left:-9px">25</div>
+                  <div class="wf-box" style="padding:7px 9px; border-style:dashed">
+                    <span class="wf-label">
+                      Màn hình này <b>không</b> hiển thị bảng xếp hạng vote.
+                      Kết quả chi tiết nằm ở tab <b>Kết quả nội bộ</b>, phải chủ động mở.
+                    </span>
+                  </div>
+                </div>
+
+                <div style="flex:1; display:flex; flex-direction:column; gap:6px">
+                  <span class="wf-label" style="color:var(--wf-text-hi)">Cấu hình phiên</span>
+                  <div class="wf-box" style="padding:7px 8px">
+                    <div class="checklist">
+                      <span class="ck ok"><i>✓</i><span>4 tiết mục đủ điều kiện</span></span>
+                      <span class="ck ok"><i>✓</i><span>Thời lượng 3 phút · <b>khóa sau khi mở</b></span></span>
+                      <span class="ck ok"><i>✓</i><span>Xác thực: mã tham dự (phương án A)</span></span>
+                      <span class="ck ok"><i>✓</i><span>Tối đa 2 phiếu · 2 tiết mục khác nhau</span></span>
+                    </div>
+                  </div>
+
+                  <div class="wf-row" style="gap:6px; margin-top:3px">
+                    <div class="wf-cta ghost" style="flex:1; padding:6px">Tạm dừng</div>
+                    <div class="wf-cta ghost" style="flex:1; padding:6px">Đóng sớm</div>
+                  </div>
+                  <div class="co" style="top:206px; right:-9px">26</div>
+                  <div class="wf-cta ghost" style="padding:6px">Gia hạn thêm 60 giây</div>
+                  <span class="wf-label">Gia hạn cần xác nhận · ghi audit log · cập nhật countdown cho mọi thiết bị</span>
+
+                  <div class="wf-box" style="padding:7px 8px; margin-top:3px">
+                    <span class="wf-label" style="display:block; color:var(--wf-text-hi)">Trạng thái LED</span>
+                    <span class="wf-label" style="display:block; margin-top:3px">08 · audience_vote_live</span>
+                  </div>
+
+                  <div class="wf-cta" style="border-color:var(--danger); color:var(--danger); padding:8px; margin-top:auto">
+                    Emergency Close
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>04.3–04.7</b> /admin/sgn/voting — theo dõi trực tiếp</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <ul class="notes" style="margin-top: var(--sp-5)">
+      <li><span class="n">19</span><span>Không đăng nhập tài khoản. Khán giả quét QR là vào thẳng — mọi bước thừa đều làm mất người bình chọn trong 3 phút.</span></li>
+      <li><span class="n">20</span><span>Bộ đếm lựa chọn và countdown dính sticky. Countdown render từ <span class="mono">ends_at</span> của server cộng offset đồng hồ tính một lần lúc tải trang — khán giả chỉnh giờ máy cũng không đổi được hạn nộp.</span></li>
+      <li><span class="n">21</span><span>Chọn phiếu thứ hai cho cùng một tiết mục là bất khả thi: nó là cùng một card, và ở tầng DB có <code>unique (ballot_id, performance_id)</code>.</span></li>
+      <li><span class="n">22</span><span>Modal liệt kê lại đúng lựa chọn trước khi gửi, vì <b>không sửa được sau khi gửi</b>. <code>ballot_token</code> sinh một lần ở đây — bấm 5 lần vẫn ra đúng một ballot.</span></li>
+      <li><span class="n">23</span><span>Màn thành công <b>không</b> có số phiếu, tiết mục dẫn đầu, tỷ lệ hay thứ hạng. Nếu API trả về bất kỳ số liệu tổng hợp nào, một người có thể poll nó và suy ra ai đang dẫn.</span></li>
+      <li><span class="n">24</span><span>Countdown của Admin cũng lấy từ <span class="mono">ends_at</span> của server, không phải bộ đếm riêng — Admin và khán giả luôn nhìn cùng một con số.</span></li>
+      <li><span class="n">25</span><span>Bảng xếp hạng vote <b>cố ý vắng mặt</b> ở màn theo dõi chính. Người vận hành hay chiếu màn Admin lên máy chiếu phụ; một bảng vote realtime nằm sẵn ở đó là rủi ro lộ kết quả do thao tác chứ không phải do lỗi kỹ thuật.</span></li>
+      <li><span class="n">26</span><span>Gia hạn ghi đè <span class="mono">ends_at</span>, mọi client tính lại từ giá trị mới. Không có countdown nào chạy độc lập, nên không có chuyện LED và điện thoại khán giả lệch nhau.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══ FLOW 5 — CÔNG BỐ KẾT QUẢ ═════════════════════════════════════════ -->
+<section id="flow-awards">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-cue">CUE 05</span>
+      <h2>Chế độ B — công bố kết quả</h2>
+      <span class="sec-note">đọc từ snapshot đã đóng băng</span>
+    </div>
+    <p class="lede">
+      Nếu LED đọc trực tiếp bảng điểm sống, một bộ điểm gửi muộn lúc 21:47 có thể đổi
+      thứ hạng <b style="color:var(--fg)">giữa lúc MC đang đọc tên người thắng</b>.
+      Publishing Snapshot loại bỏ hoàn toàn khả năng đó: kết quả được đóng băng, điểm bị
+      khóa toàn đầu cầu, và LED chỉ đọc từ bản đã đóng băng.
+    </p>
+
+    <div class="track-scroll">
+      <div class="track">
+        <div class="step"><span class="step-cue">05.1</span><span class="step-t">Kiểm 7 điều kiện</span><span class="step-d">Còn blocker thì không mở được phần công bố.</span><span class="step-sys">check_awards_readiness()</span></div>
+        <div class="step"><span class="step-cue">05.2</span><span class="step-t">Tạo snapshot</span><span class="step-d">Đóng băng kết quả + khóa toàn bộ điểm.</span><span class="step-sys">create_publishing_snapshot()</span></div>
+        <div class="step"><span class="step-cue">05.3</span><span class="step-t">Mở phần công bố</span><span class="step-d">Admin chủ động bấm, không tự chạy.</span><span class="step-sys">awards_in_progress</span></div>
+        <div class="step"><span class="step-cue">05.4</span><span class="step-t">Giải Ba</span><span class="step-d">The Creative Pulse. Preview → xác nhận 2 bước → reveal → bảng điểm.</span><span class="step-sys">award_reveal → scorecard</span></div>
+        <div class="step"><span class="step-cue">05.5</span><span class="step-t">Giải Nhì</span><span class="step-d">The Spotlight Act. Chu trình y hệt, không tự chuyển tiếp.</span><span class="step-sys">award_reveal → scorecard</span></div>
+        <div class="step"><span class="step-cue">05.6</span><span class="step-t">Crowd Magnet</span><span class="step-d">Đọc từ Voting Result Snapshot, không dùng điểm BGK.</span><span class="step-sys">audience_award<br>scorecard bị vô hiệu</span></div>
+        <div class="step"><span class="step-cue">05.7</span><span class="step-t">Giải Nhất</span><span class="step-d">The Breakthrough Act. Build-up rồi mới reveal, luôn cuối cùng.</span><span class="step-sys">grand_prize<br>chặn nếu còn giải chưa công bố</span></div>
+        <div class="step"><span class="step-cue">05.8</span><span class="step-t">Tổng kết</span><span class="step-d">BXH đầy đủ là tùy chọn riêng, không tự hiện.</span><span class="step-sys">awards_summary · full_ranking</span></div>
+      </div>
+    </div>
+
+    <div class="led-grid" style="margin-top: var(--sp-5)">
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">07 · awards_intro</span>
+          <div class="led-in">
+            <span class="led-kicker">Aha Got Talent 2026 · SGN</span>
+            <h3 class="led-h">Lễ trao giải</h3>
+            <span class="led-sub">Unlock Your Next Move</span>
+          </div>
+        </div>
+        <figcaption><b>awards_intro</b> — Mở màn phần công bố. Chưa có bất kỳ kết quả nào trong payload.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">08 · award_reveal</span>
+          <div class="led-in">
+            <span class="led-award-name">The Creative Pulse · Giải Ba</span>
+            <h3 class="led-h sm" style="font-size:4cqw">Chuyển nhịp</h3>
+            <span class="led-meta">Nguyễn Phi Yến · Platform</span>
+            <span class="led-sub" style="font-size:1.8cqw">Cá nhân · Nhảy / Múa</span>
+          </div>
+        </div>
+        <figcaption><b>award_reveal</b> — Chế độ B mặc định: reveal xong <b>dừng lại</b>, chưa hiện điểm.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">09 · scorecard</span>
+          <div class="led-in" style="gap:1.1cqw">
+            <span class="led-award-name" style="font-size:1.2cqw">The Creative Pulse · Giải Ba · Chuyển nhịp</span>
+            <div class="led-card">
+              <div class="rw hd"><span>Tiêu chí</span><span>Điểm TB</span><span>Trọng số</span><span>Quy đổi</span></div>
+              <div class="rw"><span>Ý tưởng &amp; sáng tạo</span><span>88.00</span><span class="wt">25%</span><span class="cv">22.00</span></div>
+              <div class="rw"><span>Chất lượng biểu diễn</span><span>85.00</span><span class="wt">25%</span><span class="cv">21.25</span></div>
+              <div class="rw"><span>Tinh thần Chuyển mình</span><span>87.00</span><span class="wt">20%</span><span class="cv">17.40</span></div>
+              <div class="rw"><span>Sức hút &amp; sân khấu</span><span>84.00</span><span class="wt">20%</span><span class="cv">16.80</span></div>
+              <div class="rw"><span>Phối hợp &amp; hoàn thiện</span><span>86.00</span><span class="wt">10%</span><span class="cv">8.60</span></div>
+            </div>
+            <div class="led-total">
+              <span class="lbl">Tổng điểm</span>
+              <span class="val">86.05</span>
+              <span class="max">/ 100</span>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>scorecard</b> — Năm dòng, font lớn. Không tên BGK, không điểm từng BGK, không cao nhất/thấp nhất, không nhận xét.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">10 · audience_award_shuffle</span>
+          <div class="led-in" style="gap:1.8cqw">
+            <span class="led-award-name">The Crowd Magnet · Giải Khán giả yêu thích</span>
+            <div class="led-shuffle">
+              <div class="c">Chuyển nhịp</div>
+              <div class="c">Đảo Bông Hậu</div>
+              <div class="c">Reborn Queens</div>
+              <div class="c">Bí mật chỉ chờ ngày bật mí!</div>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>audience_award_shuffle</b> — Các card xáo trộn. <b>Payload chưa hề chứa <span class="mono">winner_performance_id</span></b> — LED không có gì để lộ, kể cả khi mở DevTools giữa lúc shuffle.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">11 · audience_award_reveal</span>
+          <div class="led-in">
+            <span class="led-award-name">The Crowd Magnet</span>
+            <span class="led-kicker">Giải Khán giả yêu thích</span>
+            <h3 class="led-h sm" style="font-size:3.6cqw">Bí mật chỉ chờ<br>ngày bật mí!</h3>
+            <span class="led-meta">Central Operations · 4 thành viên</span>
+          </div>
+        </div>
+        <figcaption><b>audience_award_reveal</b> — Tiết mục xếp <b>hạng 4</b> theo điểm BGK vẫn thắng giải khán giả. Hai nguồn kết quả hoàn toàn độc lập.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">12 · audience_award_result</span>
+          <div class="led-in" style="gap:1.4cqw">
+            <span class="led-award-name" style="font-size:1.2cqw">The Crowd Magnet · Bí mật chỉ chờ ngày bật mí!</span>
+            <div class="led-vcard">
+              <div class="rw"><span>Khán giả tham gia</span><span>186</span></div>
+              <div class="rw"><span>Tổng phiếu hợp lệ</span><span>341</span></div>
+              <div class="rw"><span>Phiếu của tiết mục chiến thắng</span><span>97</span></div>
+              <div class="rw"><span>Tỷ lệ khán giả lựa chọn</span><span>52.15%</span></div>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>audience_award_result</b> — Voting Result Card. Chỉ hiện khi Admin bật <span class="mono">show_result_figures</span>. Không có bảng điểm BGK, không có danh tính người bình chọn.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">13 · grand_prize · build-up</span>
+          <div class="led-in">
+            <span class="led-kicker">Và bây giờ…</span>
+            <h3 class="led-h sm" style="font-size:4.2cqw">Giải thưởng cao nhất<br>Aha Got Talent 2026</h3>
+            <span class="led-pulse" role="presentation"></span>
+          </div>
+        </div>
+        <figcaption><b>grand_prize</b> bước 1 — Màn build-up. Admin bấm mới reveal.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">13 · grand_prize · reveal</span>
+          <div class="led-in">
+            <span class="led-award-name">The Breakthrough Act · Giải Nhất</span>
+            <h3 class="led-h" style="font-size:4.4cqw">Reborn Queens<br>— New Era</h3>
+            <span class="led-meta">Business Development · 11 thành viên</span>
+            <div class="led-total" style="margin-top:.2cqw">
+              <span class="val" style="font-size:7.6cqw">89.40</span>
+              <span class="max">/ 100</span>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>grand_prize</b> bước 2 — Reveal cao trào. Hiệu ứng ánh sáng có kiểm soát, không làm khó đọc.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">14 · awards_summary</span>
+          <div class="led-in" style="gap:1.6cqw">
+            <span class="led-kicker">Aha Got Talent 2026 · SGN</span>
+            <h3 class="led-h sm" style="font-size:3cqw">Tổng kết giải thưởng</h3>
+            <div class="led-summary">
+              <div class="row"><span class="aw">Creative Pulse · Ba</span><span class="pf">Chuyển nhịp</span><span class="sc">86.05</span></div>
+              <div class="row"><span class="aw">Spotlight Act · Nhì</span><span class="pf">Đảo Bông Hậu</span><span class="sc">86.05</span></div>
+              <div class="row"><span class="aw">Crowd Magnet</span><span class="pf">Bí mật chỉ chờ…</span><span class="sc">97 phiếu</span></div>
+              <div class="row"><span class="aw">Breakthrough · Nhất</span><span class="pf">Reborn Queens</span><span class="sc">89.40</span></div>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>awards_summary</b> — Giải khán giả hiện lượt bình chọn thay cho điểm.</figcaption>
+      </figure>
+
+      <figure>
+        <div class="led">
+          <span class="led-tag">15 · full_ranking · tùy chọn</span>
+          <div class="led-in" style="gap:1.4cqw">
+            <span class="led-kicker">Bảng xếp hạng · SGN</span>
+            <div class="led-rows">
+              <div class="rw"><span class="o">1</span><span class="nm">Reborn Queens — New Era</span><span class="st awd">89.40 · Giải Nhất</span></div>
+              <div class="rw"><span class="o">2</span><span class="nm">Đảo Bông Hậu</span><span class="st awd">86.05 · Giải Nhì</span></div>
+              <div class="rw"><span class="o">3</span><span class="nm">Chuyển nhịp</span><span class="st awd">86.05 · Giải Ba</span></div>
+              <div class="rw"><span class="o">4</span><span class="nm">Bí mật chỉ chờ ngày bật mí!</span><span class="st awd">82.75 · Khán giả</span></div>
+            </div>
+          </div>
+        </div>
+        <figcaption><b>full_ranking</b> — <b>Không tự hiện</b> sau khi trao giải. Admin bấm mới có, chọn được: tất cả · Top 3 · chỉ tiết mục đạt giải.</figcaption>
+      </figure>
+
+    </div>
+
+    <div class="frames" style="margin-top: var(--sp-6)">
+      <div class="frames-row">
+        <figure style="flex:1; min-width:0">
+          <div class="device device-wide">
+            <div class="dbar"><span class="dot"></span><span class="url">/admin/sgn/live-control · Phần chương trình</span></div>
+            <div class="screen" style="gap:9px">
+              <div class="co" style="top:34px; left:-9px">27</div>
+              <div class="wf-between">
+                <div class="wf-row">
+                  <span class="wf-strong" style="color:var(--orange); font-size:1.15rem">SGN</span>
+                  <span class="wf-label">Live Control · 07/08/2026</span>
+                </div>
+                <span class="wf-label" style="color:var(--ok)">● 1 màn LED kết nối · 20:47:12</span>
+              </div>
+
+              <div class="wf-row" style="align-items:stretch; gap:10px">
+                <div style="flex:1.25; display:flex; flex-direction:column; gap:7px">
+                  <span class="wf-label">Preview 16:9 — đang phát trên LED</span>
+                  <div class="wf-box" style="aspect-ratio:16/9; display:grid; place-items:center">
+                    <div style="text-align:center">
+                      <span class="wf-label" style="display:block; color:var(--cyan)">04 · PERFORMANCE_COMPLETED</span>
+                      <span class="wf-strong" style="display:block; margin-top:5px">Đã hoàn tất chấm điểm</span>
+                      <span class="wf-label" style="display:block; margin-top:3px">Reborn Queens — New Era</span>
+                    </div>
+                  </div>
+                  <div class="co" style="bottom:74px; left:14px">28</div>
+                  <div class="wf-row" style="flex-wrap:wrap; gap:5px">
+                    <span class="pill p-todo">Chờ</span>
+                    <span class="pill p-todo">Đang diễn</span>
+                    <span class="pill p-todo">BGK đang chấm</span>
+                    <span class="pill p-sent" style="color:var(--orange)">● Đã chấm xong</span>
+                    <span class="pill p-todo">Bảng tổng</span>
+                    <span class="pill p-todo">Xong toàn bộ</span>
+                  </div>
+                  <div class="wf-row" style="gap:6px">
+                    <div class="wf-cta ghost" style="flex:1; padding:6px">Tiết mục trước</div>
+                    <div class="wf-cta" style="flex:1; padding:6px">Tiết mục tiếp theo</div>
+                  </div>
+                </div>
+
+                <div style="flex:1; display:flex; flex-direction:column; gap:6px">
+                  <div class="co" style="top:74px; right:-9px">29</div>
+                  <span class="wf-label" style="color:var(--wf-text-hi)">Điều kiện mở phần công bố</span>
+                  <div class="wf-box" style="padding:8px">
+                    <div class="checklist">
+                      <span class="ck ok"><i>✓</i><span>Tất cả tiết mục đã biểu diễn</span></span>
+                      <span class="ck ok"><i>✓</i><span>Tất cả tiết mục đã chấm xong</span></span>
+                      <span class="ck no"><i>✕</i><span>Không còn BGK lưu nháp — <b>còn 1 (BGK 04 · #04)</b></span></span>
+                      <span class="ck ok"><i>✓</i><span>Không còn điểm chưa đồng bộ</span></span>
+                      <span class="ck ok"><i>✓</i><span>Không còn điểm lỗi validation</span></span>
+                      <span class="ck no"><i>✕</i><span>Đủ BGK bắt buộc — <b>#04 thiếu 1/5</b></span></span>
+                      <span class="ck no"><i>○</i><span>Admin xác nhận bảng kết quả cuối cùng</span></span>
+                    </div>
+                  </div>
+                  <div class="co" style="bottom:58px; right:-9px">30</div>
+                  <div class="wf-cta ghost" style="padding:7px; opacity:.4">Tạo Publishing Snapshot</div>
+                  <div class="wf-cta ghost" style="padding:7px; opacity:.4">Bắt đầu công bố kết quả</div>
+                  <span class="wf-label">Còn 3 điều kiện chưa đạt</span>
+                  <div class="wf-cta" style="border-color:var(--danger); color:var(--danger); padding:8px; margin-top:auto">
+                    Ẩn toàn bộ dữ liệu trên LED
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>05.1</b> Live Control — phần chương trình. Nút công bố bị khóa cho tới khi đủ 7 điều kiện.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="frames" style="margin-top: var(--sp-4)">
+      <div class="frames-row">
+        <figure style="flex:1; min-width:0">
+          <div class="device device-wide">
+            <div class="dbar"><span class="dot"></span><span class="url">/admin/sgn/live-control · Phần công bố giải</span></div>
+            <div class="screen" style="gap:9px">
+              <div class="wf-between">
+                <div class="wf-row">
+                  <span class="wf-strong" style="color:var(--orange); font-size:1.15rem">SGN</span>
+                  <span class="wf-label">Công bố kết quả · Snapshot v1 · tạo 21:02 bởi BTC 01</span>
+                </div>
+                <span class="wf-label" style="color:var(--ok)">● Điểm đã khóa toàn đầu cầu</span>
+              </div>
+
+              <div class="wf-row" style="align-items:stretch; gap:10px">
+                <div style="flex:1.25; display:flex; flex-direction:column; gap:7px">
+                  <div class="co" style="top:66px; left:14px">31</div>
+                  <span class="wf-label">Preview — <b style="color:var(--warn)">chưa đưa lên LED</b></span>
+                  <div class="wf-box" style="aspect-ratio:16/9; display:grid; place-items:center; border-color:var(--warn)">
+                    <div style="text-align:center">
+                      <span class="wf-label" style="display:block; color:var(--orange)">QUÁN QUÂN</span>
+                      <span class="wf-strong" style="display:block; margin-top:5px; font-size:1rem">Reborn Queens — New Era</span>
+                      <span class="wf-strong" style="display:block; margin-top:4px; font-size:1.5rem; color:var(--orange)">89.40</span>
+                    </div>
+                  </div>
+                  <div class="wf-row" style="gap:6px">
+                    <div class="wf-cta ghost" style="flex:1; padding:6px">Ẩn khỏi LED</div>
+                    <div class="wf-cta ghost" style="flex:1; padding:6px">Màn hình trước</div>
+                    <div class="wf-cta" style="flex:1.3; padding:6px">Đưa lên LED</div>
+                  </div>
+                </div>
+
+                <div style="flex:1; display:flex; flex-direction:column; gap:6px">
+                  <div class="co" style="top:66px; right:-9px">32</div>
+                  <span class="wf-label" style="color:var(--wf-text-hi)">Timeline công bố</span>
+                  <div class="wf-box" style="padding:7px 8px">
+                    <div class="checklist">
+                      <span class="ck ok"><i>✓</i><span>① Giải Bứt phá — Chuyển nhịp · đã công bố 21:08</span></span>
+                      <span class="ck ok"><i>✓</i><span>&nbsp;&nbsp;&nbsp;bảng điểm đã hiện</span></span>
+                      <span class="ck ok"><i>✓</i><span>② Giải Đồng đội — Đảo Bông Hậu · 21:14</span></span>
+                      <span class="ck ok"><i>✓</i><span>③ Crowd Magnet — Đảo Bông Hậu · 21:19</span></span>
+                      <span class="ck no"><i>●</i><span><b>④ Quán quân — đang preview</b></span></span>
+                      <span class="ck"><i>○</i><span>&nbsp;&nbsp;&nbsp;bảng điểm</span></span>
+                      <span class="ck"><i>○</i><span>Màn hình tổng kết</span></span>
+                      <span class="ck"><i>○</i><span>Bảng xếp hạng đầy đủ <i style="color:var(--wf-text)">(tùy chọn)</i></span></span>
+                    </div>
+                  </div>
+
+                  <div class="co" style="bottom:64px; right:-9px">33</div>
+                  <div class="wf-box" style="padding:7px 8px; border-color:var(--warn)">
+                    <span class="wf-label" style="color:var(--warn)"><b>Xác nhận công bố — bước 2/2</b></span>
+                    <div class="wf-box" style="padding:5px 6px; margin-top:5px">
+                      <span class="wf-label" style="display:block">Đầu cầu <b style="color:var(--orange)">SGN</b></span>
+                      <span class="wf-label" style="display:block">Giải <b>Quán quân</b></span>
+                      <span class="wf-label" style="display:block">Tiết mục <b>Reborn Queens — New Era</b></span>
+                      <span class="wf-label" style="display:block">Tổng điểm <b>89.40</b></span>
+                    </div>
+                    <span class="wf-label" style="display:block; margin-top:5px">Gõ <b>XÁC NHẬN CÔNG BỐ</b> để mở nút</span>
+                    <div class="wf-input" style="margin-top:4px">XÁC NHẬN CÔNG BỐ</div>
+                    <div class="wf-cta" style="margin-top:5px; padding:6px">Đưa kết quả lên LED</div>
+                  </div>
+
+                  <div class="wf-cta" style="border-color:var(--danger); color:var(--danger); padding:8px; margin-top:auto">
+                    Ẩn toàn bộ dữ liệu trên LED
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption><b>05.4–05.8</b> Live Control — phần công bố giải. Mỗi giải một chu trình preview → xác nhận → đưa lên LED.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <ul class="notes" style="margin-top: var(--sp-5)">
+      <li><span class="n">27</span><span>Đầu cầu đang điều khiển hiện <b>to, màu phân biệt</b> (SGN cam, HAN cyan) ngay cạnh nút công bố. Đây là lớp chống công bố nhầm đầu cầu thứ nhất trong ba lớp.</span></li>
+      <li><span class="n">28</span><span>Sáu trạng thái của chế độ A là sáu nút, trạng thái đang phát đánh dấu rõ. Admin đứng trong bóng tối cánh gà cần bấm đúng ngay lần đầu.</span></li>
+      <li><span class="n">29</span><span>Bảy điều kiện hiện thành checklist với <b>lý do cụ thể</b> — “còn 1 BGK lưu nháp” kèm tên người và số tiết mục, không phải một thông báo chung chung. Điều kiện 7 là con người xác nhận, không tự động hóa.</span></li>
+      <li><span class="n">30</span><span>Nút tạo snapshot và mở công bố <b>bị vô hiệu hóa</b> chứ không bị ẩn — Admin thấy được đích đến và biết còn thiếu gì. Tạo snapshot đồng thời <b>khóa toàn bộ điểm của đầu cầu</b>, nên không tồn tại tình huống snapshot lệch giữa buổi trao giải.</span></li>
+      <li><span class="n">31</span><span>Preview render bằng <b>chính hàm dựng payload</b> mà LED dùng (<code>build_award_payload</code>), chỉ khác là không ghi vào DB. Không có nguy cơ preview nói một đằng, LED chiếu một nẻo.</span></li>
+      <li><span class="n">32</span><span>Timeline hiện rõ giải nào đã công bố lúc mấy giờ, giải nào đang preview, giải nào còn lại. Giải cao nhất bị chặn ở tầng RPC nếu còn giải nào chưa công bố.</span></li>
+      <li><span class="n">33</span><span>Modal xác nhận ghi đủ <b>bốn dòng</b>: đầu cầu · tên giải · tên tiết mục · tổng điểm. Phải gõ <span class="mono">XÁC NHẬN CÔNG BỐ</span> mới mở được nút. Không thao tác công bố nào đi được bằng một click.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══ GUARD RAILS ═══════════════════════════════════════════════════════ -->
+<section id="rails">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-cue">CUE 06</span>
+      <h2>Năm bất biến</h2>
+      <span class="sec-note">phá vỡ một trong năm = thay đổi sai</span>
+    </div>
+    <p class="lede">
+      Đây không phải danh sách “nên làm”. Cả năm đều được cưỡng chế ở tầng Postgres —
+      RLS, constraint, trigger — chứ không chỉ ở tầng giao diện, và mỗi cái có test trong
+      CI chặn deploy khi fail.
+    </p>
+
+    <div class="rails">
+      <div class="rail">
+        <span class="rail-id">BB-1</span>
+        <h4>SGN và HAN không bao giờ trộn</h4>
+        <p><code>location</code> có mặt trong URL, trong mọi bảng nghiệp vụ, và trong RLS policy. Không tồn tại route nào xếp hạng chung hai đầu cầu.</p>
+      </div>
+      <div class="rail">
+        <span class="rail-id">BB-2</span>
+        <h4>LED chỉ hiện được thứ Admin đã đẩy lên màn hình</h4>
+        <p>Vai trò <code>anon</code> chỉ <code>SELECT</code> được <code>public_progress</code> (không có cột điểm nào) và <code>live_display_state.stage_payload</code> — nội dung đang chiếu ngay lúc này. <code>scores</code>, <code>performance_results</code>, <code>publishing_snapshots</code> đều ngoài tầm với.</p>
+      </div>
+      <div class="rail">
+        <span class="rail-id">BB-3</span>
+        <h4>Judge chỉ thấy dữ liệu của mình</h4>
+        <p>RLS: <code>judge_id = auth.uid()</code>. Bảng <code>performance_results</code> không có policy nào cho Judge nên mặc định từ chối.</p>
+      </div>
+      <div class="rail">
+        <span class="rail-id">BB-4</span>
+        <h4>Không mất điểm khi mất mạng</h4>
+        <p>IndexedDB trước, Postgres sau. <code>idempotency_key</code> unique cộng <code>unique (judge_id, performance_id)</code> — retry bao nhiêu lần cũng ra một bộ điểm.</p>
+      </div>
+      <div class="rail" style="grid-column: 1 / -1">
+        <span class="rail-id">BB-5</span>
+        <h4>Google Sheet là nguồn đăng ký, không phải database chấm điểm</h4>
+        <p>Sync một chiều Sheet → Postgres, bảy bước, có bước preview để Admin xác nhận trước khi ghi. Không bao giờ ghi đè field do BTC sở hữu (<code>performance_order</code>, <code>official_display_name</code>, <code>team_name</code>, <code>judging_status</code>) và không bao giờ chạm vào <code>scores</code>.</p>
+      </div>
+    </div>
+
+    <div class="rails" style="margin-top: var(--sp-4)">
+      <div class="never">
+        <h4>Chế độ A — không bao giờ hiển thị</h4>
+        <ul>
+          <li><b>Tổng điểm</b> hoặc <b>điểm trung bình</b>, dưới mọi hình thức.</li>
+          <li><b>Điểm từng tiêu chí</b>, <b>điểm từng BGK</b>.</li>
+          <li><b>Thứ hạng tạm thời</b> hoặc vị trí trong bảng xếp hạng.</li>
+          <li><b>So sánh</b> giữa các tiết mục · ai đang dẫn đầu · cao nhất · thấp nhất · chênh lệch.</li>
+          <li><b>Tên BGK</b> nào chưa chấm xong, hoặc lý do vì sao còn thiếu.</li>
+          <li>Trạng thái nào ngoài <b>sáu nhãn hợp lệ</b> đã enum ở tầng DB.</li>
+        </ul>
+        <p style="font-size:.8rem; color:var(--muted); margin-top:var(--sp-1)">
+          Cưỡng chế bằng CHECK <code style="font-family:var(--mono); color:var(--cyan)">payload_scores_gated</code>:
+          Postgres từ chối ghi payload có điểm khi <code style="font-family:var(--mono); color:var(--cyan)">display_mode</code> thuộc chế độ A.
+        </p>
+      </div>
+
+      <div class="never">
+        <h4>Chế độ B — không bao giờ hiển thị</h4>
+        <ul>
+          <li><b>Điểm của từng BGK</b> — chỉ có điểm trung bình của tiết mục.</li>
+          <li><b>Tên BGK</b>, điểm cao nhất / thấp nhất, độ lệch giữa các BGK.</li>
+          <li><b>Nhận xét</b> của BGK, kể cả phần công khai.</li>
+          <li><b>Bảng điểm BGK cho giải khán giả</b> — nút bị vô hiệu ở tầng RPC.</li>
+          <li><b>Bảng xếp hạng đầy đủ</b> nếu Admin không chủ động bật.</li>
+          <li>Kết quả của <b>đầu cầu còn lại</b> — snapshot SGN và HAN tách rời.</li>
+        </ul>
+        <p style="font-size:.8rem; color:var(--muted); margin-top:var(--sp-1)">
+          Cả hai chế độ: không email, không SĐT, không Telegram, không ghi chú BTC,
+          và không bao giờ suy trạng thái từ dữ liệu chưa commit.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    AHA GOT TALENT 2026 · Blueprint hệ thống chấm điểm · Giai đoạn 1–2 · 02/08/2026<br>
+    Dữ liệu tiết mục lấy trực tiếp từ <span class="mono">Aha Talent 2026 — Registration Tracking</span>,
+    normalize qua <span class="mono">scripts/fetch-sheet.mjs</span> · 8 tiết mục · SGN 4 / HAN 4<br>
+    Kiến trúc: <span class="mono">docs/01-architecture.md</span> ·
+    LED &amp; công bố giải: <span class="mono">docs/02-led-awards.md</span> ·
+    Bình chọn khán giả: <span class="mono">docs/03-audience-voting.md</span> ·
+    Dữ liệu nguồn: <span class="mono">docs/00-data-audit.md</span><br>
+    Tên BGK và số liệu bình chọn trong wireframe là nhãn tạm. Danh sách giám khảo do BTC
+    thiết lập ở <span class="mono">/admin/judges</span>; cơ cấu giải ở <span class="mono">/admin/settings</span>.
+  </div>
+</footer>
+
+</div>

@@ -1,0 +1,122 @@
+@import "tailwindcss";
+@import "./motion.css";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AHA GOT TALENT 2026 — Design tokens
+   Lấy trực tiếp từ KV campaign Sinh nhật Ahamove 11 tuổi:
+   deep navy · electric blue · cyan · Ahamove orange · light trail.
+   Cam là CTA và điểm nhấn thương hiệu, không bao giờ dùng cho nền lớn.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* nền — deep navy của thành phố đêm trong KV */
+  --color-ink: #040914;
+  --color-navy-950: #060d1e;
+  --color-navy-900: #0a1730;
+  --color-navy-850: #0e2141;
+  --color-navy-800: #132b52;
+  --color-navy-700: #1b3d6e;
+  --color-navy-600: #24518f;
+
+  /* light trail */
+  --color-electric: #1e6bff;
+  --color-electric-dim: #1b4fb8;
+  --color-cyan: #35d6f0;
+  --color-cyan-dim: #1c93a8;
+
+  /* thương hiệu Ahamove — chỉ CTA và điểm nhấn */
+  --color-brand: #ff7f32;
+  --color-brand-deep: #f25c05;
+  --color-brand-soft: #ffa76b;
+
+  /* trung tính lệch xanh — chọn, không phải mặc định */
+  --color-silver: #93a7c4;
+  --color-silver-dim: #5e7a9c;
+  --color-chalk: #eaf1fb;
+
+  /* trạng thái */
+  --color-ok: #34d399;
+  --color-warn: #fbbf24;
+  --color-danger: #f87171;
+  --color-locked: #a78bfa;
+}
+
+@layer base {
+  html {
+    background: var(--color-ink);
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--color-ink);
+    color: var(--color-chalk);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--color-brand);
+    color: var(--color-ink);
+  }
+}
+
+@utility glass {
+  /* kính mờ trên navy — mọi card dữ liệu dùng cái này để không rối trên nền KV */
+  background: color-mix(in oklab, var(--color-navy-900) 76%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-navy-700) 70%, transparent);
+  backdrop-filter: blur(14px) saturate(1.15);
+}
+
+@utility glass-strong {
+  background: color-mix(in oklab, var(--color-navy-950) 92%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-navy-700) 85%, transparent);
+  backdrop-filter: blur(20px) saturate(1.2);
+}
+
+@utility edge-electric {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--color-electric) 55%, transparent),
+    0 0 22px -8px var(--color-electric);
+}
+
+@utility edge-brand {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--color-brand) 60%, transparent),
+    0 0 26px -8px var(--color-brand);
+}
+
+@utility grid-city {
+  /* lưới digital rất mờ — gợi city grid, không gây ồn */
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklab, var(--color-navy-700) 38%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--color-navy-700) 38%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 64px 64px;
+}
+
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility display {
+  font-family: var(--font-display), "Arial Narrow", "Roboto Condensed",
+    Haettenschweiler, Impact, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 0.95;
+}
+
+/* Keyframes, tiện ích motion và khối prefers-reduced-motion nằm ở motion.css. */

@@ -1,41 +1,77 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ─────────────────────────────────────────────────────────────────────────────
+# .gitignore ở THƯ MỤC GỐC
+#
+# app/.gitignore vẫn hiệu lực cho mọi thứ bên trong app/ — các pattern có dấu
+# "/" đứng đầu ở file đó được tính tương đối với app/, nên chúng vẫn khớp đúng
+# sau khi git root chuyển lên đây. File này chỉ lo phần ở gốc.
+# ─────────────────────────────────────────────────────────────────────────────
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
+# macOS
 .DS_Store
-*.pem
+.AppleDouble
+.LSOverride
+._*
 
-# debug
+# Dependencies (phòng trường hợp cài ở gốc)
+node_modules/
+.pnp
+.pnp.*
+
+# Credential — không bao giờ commit
+.env
+.env.local
+.env.*.local
+service-account*.json
+credentials*.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# .env* bắt cả .env.example, nhưng file đó chỉ chứa TÊN biến + placeholder
+# và là tài liệu bàn giao chính. Luôn commit.
+!.env.example
+
+# Database local & dữ liệu volume
+# data/snapshot.json ĐƯỢC commit (seed cho npm run db:seed) — xem ngoại lệ dưới.
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+.data/
+/data/*
+!/data/snapshot.json
+
+# Backup DB sinh bởi app/scripts/backup.mjs
+backups/
+
+# Log
+*.log
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
+# Cache & build
+.cache/
+.turbo/
+.next/
+out/
+build/
+dist/
+coverage/
 *.tsbuildinfo
-next-env.d.ts
+
+# Nền tảng deploy
+.vercel
+.railway
+.render
+
+# Claude Code — settings.local.json là cấu hình máy cá nhân
+.claude/settings.local.json
+
+# File tạm khi thử nghiệm
+*.tmp
+sheet_test.*

@@ -1,0 +1,66 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# local sqlite database
+/.data/
+
+# ── Bàn giao deploy ────────────────────────────────────────────────────────
+# Credential — không bao giờ commit
+.env
+.env.local
+.env.*.local
+service-account*.json
+credentials*.json
+*.pem
+*.key
+
+# Nền tảng
+.vercel
+.railway
+.render
+
+# Backup DB sinh bởi scripts/backup.mjs
+/backups/
+
+# .env* ở trên bắt cả .env.example — nhưng file đó chỉ chứa TÊN biến và
+# placeholder, và nó là tài liệu bàn giao chính. Luôn commit.
+!.env.example

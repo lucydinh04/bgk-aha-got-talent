@@ -1,0 +1,426 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   LED MOTION SYSTEM
+   Sinh nhật Ahamove 11 tuổi — Chuyển mình bứt phá
+
+   CSS thuần, không thư viện. Lý do: màn LED chạy Chrome fullscreen suốt ba
+   tiếng, và mọi thứ ở đây chỉ animate `transform` với `opacity` — hai thuộc
+   tính compositor xử lý được mà không đụng tới layout hay paint. Một thư viện
+   motion sẽ thêm một runtime JS phải chạy mỗi frame để làm đúng việc mà trình
+   duyệt đã làm sẵn trên GPU.
+
+   BA LUẬT KHÔNG ĐƯỢC PHÁ
+
+   1. Icon A không bao giờ bị lật.
+      Không scaleX âm, không rotateY, không matrix âm trục X, không rotate.
+      Icon A chỉ được translate, scale đồng đều, opacity, glow.
+
+   2. Không animation nào đặt `opacity: 0` ở base style.
+      Mọi hiệu ứng xuất hiện dùng `animation-fill-mode: both` và bắt đầu từ
+      opacity 0 TRONG keyframe. Nếu animation không chạy — reduced motion, CSS
+      lỗi, trình duyệt lạ — nội dung vẫn hiện. Màn sân khấu không bao giờ được
+      trống vì một hiệu ứng không chạy.
+
+   3. Không animate width/height/top/left. Chỉ transform và opacity.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Nền: KV zoom rất chậm ────────────────────────────────────────────────
+   `alternate` thay vì loop từ đầu: không có điểm nhảy ở cuối chu kỳ, nên mắt
+   không bao giờ bắt được nhịp lặp. scale đồng đều — KV không méo, icon A in
+   trong artwork không đổi chiều. */
+@keyframes kv-drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.025);
+  }
+}
+
+/* ── Blue energy glow — trôi và thở ─────────────────────────────────────── */
+@keyframes glow-drift {
+  0% {
+    transform: translate3d(-3%, 2%, 0) scale(1);
+    opacity: 0.28;
+  }
+  50% {
+    transform: translate3d(3%, -2%, 0) scale(1.12);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate3d(-3%, 2%, 0) scale(1);
+    opacity: 0.28;
+  }
+}
+
+/* ── Orange light trail — chạy ngang dải thấp ───────────────────────────── */
+@keyframes trail-run {
+  from {
+    transform: translate3d(-40%, 0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.7;
+  }
+  88% {
+    opacity: 0.7;
+  }
+  to {
+    transform: translate3d(240%, 0, 0);
+    opacity: 0;
+  }
+}
+
+/* ── Digital particle — trôi lên, mờ dần ────────────────────────────────── */
+@keyframes particle-rise {
+  from {
+    transform: translate3d(0, 0, 0) scale(0.6);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.55;
+  }
+  82% {
+    opacity: 0.4;
+  }
+  to {
+    transform: translate3d(var(--drift-x, 6px), -170px, 0) scale(1);
+    opacity: 0;
+  }
+}
+
+/* ── Fine grid — drift rất nhẹ, gần như tĩnh ────────────────────────────── */
+@keyframes grid-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 64px 64px;
+  }
+}
+
+/* ── Light sweep qua headline ───────────────────────────────────────────── */
+@keyframes light-sweep {
+  from {
+    transform: translate3d(-120%, 0, 0);
+  }
+  to {
+    transform: translate3d(320%, 0, 0);
+  }
+}
+
+/* ── Icon A float — CHỈ trục Y. Không rotate, không scaleX. ─────────────── */
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -1.2%, 0);
+  }
+}
+
+/* ── Xuất hiện ──────────────────────────────────────────────────────────── */
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes enter-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-18px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes enter-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes enter-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  60% {
+    transform: scale(1.03);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes exit-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ── Nhịp trạng thái ────────────────────────────────────────────────────── */
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes badge-breathe {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Một BGK vừa gửi điểm: một vòng năng lượng lan ra rồi tắt. Chạy đúng một lần. */
+@keyframes energy-ring {
+  from {
+    opacity: 0.55;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+@keyframes energy-flash {
+  0% {
+    opacity: 0;
+  }
+  22% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ── Hoàn tất: vẽ dấu check ─────────────────────────────────────────────── */
+@keyframes draw-check {
+  from {
+    stroke-dashoffset: var(--check-len, 48);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ring-complete {
+  from {
+    opacity: 0.9;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.55);
+  }
+}
+
+/* ── Countdown ──────────────────────────────────────────────────────────── */
+@keyframes digit-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 22%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes urgent-beat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  28% {
+    transform: scale(1.045);
+  }
+}
+
+/* ── Shuffle — quỹ đạo, KHÔNG rotate mạnh, KHÔNG lật ────────────────────── */
+@keyframes shuffle-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-1.4deg);
+  }
+  33% {
+    transform: translate3d(0, -6px, 0) rotate(1.2deg);
+  }
+  66% {
+    transform: translate3d(0, 5px, 0) rotate(-0.6deg);
+  }
+}
+
+/* Nhịp dừng để tên đọc được: card đứng yên 40% chu kỳ rồi mới đảo chỗ. */
+@keyframes shuffle-orbit {
+  0%,
+  38% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  56% {
+    transform: translate3d(var(--orbit-x, 40px), var(--orbit-y, -16px), 0)
+      scale(0.94);
+  }
+  76%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes converge-line {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  40% {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes winner-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes spotlight-sweep {
+  from {
+    transform: translate3d(-60%, 0, 0) skewX(-12deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.42;
+  }
+  to {
+    transform: translate3d(260%, 0, 0) skewX(-12deg);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-fall {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -12%, 0) rotate(0deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(var(--confetti-x, 0px), 120%, 0)
+      rotate(var(--confetti-r, 220deg));
+  }
+}
+
+/* ── Loader ─────────────────────────────────────────────────────────────── */
+@keyframes scan-line {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(300%, 0, 0);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Tiện ích
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@utility motion-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Xuất hiện — LUÔN kèm `both` để nội dung không bao giờ kẹt ở opacity 0. */
+@utility anim-enter-up {
+  animation: enter-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility anim-enter-left {
+  animation: enter-left 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility anim-enter-fade {
+  animation: enter-fade 0.45s ease-out both;
+}
+
+@utility anim-enter-pop {
+  animation: enter-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Tạm dừng toàn bộ khi tab bị ẩn.
+   Máy chiếu hay bị chuyển sang tab khác giữa chương trình; không có dòng này
+   thì trình duyệt vẫn tính animation cho một màn không ai nhìn.
+   ═══════════════════════════════════════════════════════════════════════════ */
+[data-motion-paused="true"] *,
+[data-motion-paused="true"] *::before,
+[data-motion-paused="true"] *::after {
+  animation-play-state: paused !important;
+}
+
+/* Debug: chỉ bật qua ?motionDebug=true và chỉ ở development. */
+[data-motion-speed="slow"] *,
+[data-motion-speed="slow"] *::before,
+[data-motion-speed="slow"] *::after {
+  animation-duration: calc(var(--anim-dur, 1s) * 4) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   prefers-reduced-motion
+   Tắt mọi thứ lặp vô hạn và mọi chuyển động nền. Nội dung giữ nguyên đầy đủ,
+   state giữ nguyên đúng — chỉ mất phần chuyển động.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Lớp trang trí thuần tuý: ẩn hẳn thay vì đóng băng ở một khung hình lạ. */
+  [data-motion-decorative="true"] {
+    display: none !important;
+  }
+}

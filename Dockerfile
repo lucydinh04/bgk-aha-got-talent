@@ -1,0 +1,59 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# AHA GOT TALENT 2026
+#
+# Một tiến trình Node chạy liên tục. KHÔNG phải serverless — hệ thống dựa vào
+# hai thứ mà serverless không có:
+#   · file SQLite tồn tại giữa các request
+#   · kênh SSE in-process nối Admin với màn LED
+#
+# Chạy được trên Railway, Render, Fly, hoặc bất kỳ VPS nào có Docker.
+# Bắt buộc mount một volume vào /data — xem AHA_DB_PATH bên dưới.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# node:sqlite chỉ dùng được không cần cờ từ Node 23.4; Node 24 là mốc an toàn.
+FROM node:24-slim AS base
+WORKDIR /app
+
+# ── deps ───────────────────────────────────────────────────────────────────
+FROM base AS deps
+COPY app/package.json app/package-lock.json ./
+RUN npm ci
+
+# ── build ──────────────────────────────────────────────────────────────────
+FROM base AS build
+COPY --from=deps /app/node_modules ./node_modules
+COPY app/ ./
+# `data/snapshot.json` nằm ngoài thư mục app nhưng scripts/seed.mjs cần nó.
+COPY data/ ../data/
+RUN npm run build
+
+# ── runtime ────────────────────────────────────────────────────────────────
+FROM base AS runtime
+ENV NODE_ENV=production
+# Volume mount điểm này. Không mount = mất toàn bộ điểm sau mỗi lần deploy.
+ENV AHA_DB_PATH=/data/aha.db
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=build /app/.next ./.next
+COPY --from=build /app/public ./public
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/next.config.ts ./next.config.ts
+# Script seed + backup phải có mặt để chạy được sau khi deploy.
+COPY --from=build /app/scripts ./scripts
+COPY --from=build /app/src/lib/db ./src/lib/db
+COPY --from=build /data ../data
+
+RUN mkdir -p /data && chown -R node:node /data
+USER node
+
+EXPOSE 3000
+# Nền tảng tự đặt PORT; Next đọc biến này.
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+# Healthcheck dùng chính endpoint của app — nó truy vấn DB thật, nên container
+# bị đánh dấu unhealthy khi database hỏng chứ không chỉ khi tiến trình chết.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
+CMD ["npm", "run", "start"]
