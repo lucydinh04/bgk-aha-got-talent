@@ -12,6 +12,7 @@ import {
   LEDAllCompleted,
   LEDAwardsIntro,
   LEDAwardsSummary,
+  LEDFramePreview,
 } from "@/components/led/LEDStage";
 import { MotionRoot } from "@/components/motion/MotionRoot";
 import { LEDStateTransition } from "@/components/motion/primitives";
@@ -118,6 +119,7 @@ export function LiveScreen({
         quiet={effective !== "standby" && !hidden}
         bare={hidden}
         anchor={centered ? "center" : "bottom"}
+        fill={framePreview}
       >
         {/* Emergency Hide đi thẳng, không crossfade: brief yêu cầu dưới 200ms. */}
         <LEDStateTransition stateKey={effective} instant={hidden}>
@@ -213,14 +215,20 @@ export function LiveScreen({
           )}
         </LEDStateTransition>
 
-        {debug ? (
+        {debug && (
           <DebugBadge
             connection={connection}
             lastUpdate={lastUpdate}
             mode={effective}
           />
-        ) : null}
+        )}
       </LEDStage>
+    </>
+  );
+
+  return (
+    <MotionRoot debug={motionDebug}>
+      {framePreview ? <LEDFramePreview>{stage}</LEDFramePreview> : stage}
     </MotionRoot>
   );
 }
