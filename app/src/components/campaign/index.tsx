@@ -14,7 +14,9 @@ export function CampaignLogo({
   className = "",
   priority = false,
 }: {
-  width?: number;
+  /** Số = px. Chuỗi = bất kỳ đơn vị CSS nào — màn LED truyền `cqw` để logo co
+   *  giãn theo canvas thay vì đứng yên ở một cỡ px cố định. */
+  width?: number | string;
   className?: string;
   priority?: boolean;
 }) {
@@ -28,7 +30,7 @@ export function CampaignLogo({
         asset="ahamoveLogo"
         fit="contain"
         priority={priority}
-        sizes={`${width}px`}
+        sizes={typeof width === "number" ? `${width}px` : "20vw"}
         className="h-full w-full"
       />
     </span>
@@ -44,7 +46,8 @@ export function AnniversaryBadge({
   className = "",
   priority = false,
 }: {
-  width?: number;
+  /** Số = px. Chuỗi = đơn vị CSS bất kỳ, dùng cho canvas LED. */
+  width?: number | string;
   className?: string;
   priority?: boolean;
 }) {
@@ -58,7 +61,7 @@ export function AnniversaryBadge({
         asset="anniversary11"
         fit="contain"
         priority={priority}
-        sizes={`${width}px`}
+        sizes={typeof width === "number" ? `${width}px` : "12vw"}
         className="h-full w-full drop-shadow-[0_0_18px_rgba(255,127,50,0.35)]"
       />
     </span>
@@ -226,7 +229,7 @@ const OVERLAYS: Record<OverlayLevel, string> = {
    * giữ nguyên light trail cam và cyan của artwork.
    */
   light:
-    "radial-gradient(ellipse 58% 86% at 50% 50%, rgba(4,9,20,.80) 0%, rgba(4,9,20,.62) 48%, rgba(4,9,20,.24) 74%, rgba(4,9,20,.06) 90%, transparent 100%)",
+    "radial-gradient(ellipse 84% 94% at 50% 46%, transparent 0%, rgba(4,9,20,.10) 64%, rgba(4,9,20,.38) 100%)",
   medium:
     "linear-gradient(to top, rgba(4,9,20,.9) 0%, rgba(6,13,30,.55) 50%, rgba(6,13,30,.35) 100%)",
   heavy:
@@ -250,7 +253,7 @@ const OVERLAYS: Record<OverlayLevel, string> = {
    * vùng giữa. Có ý thức — chữ vận hành phải thắng.
    */
   stage:
-    "radial-gradient(ellipse 62% 92% at 50% 50%, rgba(4,9,20,.94) 0%, rgba(4,9,20,.90) 46%, rgba(4,9,20,.58) 70%, rgba(4,9,20,.18) 86%, transparent 100%)",
+    "radial-gradient(ellipse 82% 92% at 50% 46%, transparent 0%, rgba(4,9,20,.16) 60%, rgba(4,9,20,.46) 100%)",
   /* rất mờ — dùng khi KV chỉ là texture nền phía sau dữ liệu dày */
   veil: "linear-gradient(to top, rgba(4,9,20,.97) 0%, rgba(4,9,20,.93) 100%)",
 };

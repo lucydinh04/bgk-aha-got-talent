@@ -97,16 +97,16 @@ export function LiveScreen({
   const hidden = effective === "emergency_hide";
   // Mọi màn đặt chữ giữa khung đều cần scrim trung tâm — chỗ đó KV đã có sẵn
   // headline trắng rất sáng, chữ trắng đè lên chữ trắng thì không ai đọc được.
+  //
+  // `audience_vote_*` và `awards_*` đã chuyển sang bố cục neo đáy trên canvas
+  // ultra-wide, nên chúng dùng scrim ĐÁY chứ không phải scrim tâm — scrim tâm
+  // là một ellipse giữa khung, nó không phủ tới góc dưới-trái nơi giờ có chữ.
   const centered =
     effective === "award_reveal" ||
     effective === "scorecard" ||
     effective === "audience_award_shuffle" ||
-    effective === "audience_vote_intro" ||
-    effective === "audience_vote_live" ||
     effective === "audience_vote_closed" ||
-    effective === "audience_vote_verification" ||
-    effective === "awards_intro" ||
-    effective === "awards_summary";
+    effective === "audience_vote_verification";
 
   const stage = (
     <>

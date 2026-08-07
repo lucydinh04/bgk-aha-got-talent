@@ -52,7 +52,7 @@ const USERS = [
   // chung một tài khoản cho SGN 07/08 và HAN 14/08.
   { email: "nhidvm@ahamove.com", full_name: "Nhidvm", role: "admin", title: "Ban Tổ chức", location: null },
 
-  { email: "duyennt@ahamove.com",  full_name: "Duyennt",  role: "judge", title: "Trưởng ban giám khảo", location: null },
+  { email: "duyennt@ahamove.com",  full_name: "Duyennt",  role: "judge", title: "Giám khảo", location: null },
   { email: "trangdlh@ahamove.com", full_name: "Trangdlh", role: "judge", title: "Giám khảo", location: null },
   { email: "thangls@ahamove.com",  full_name: "Thangls",  role: "judge", title: "Giám khảo", location: null },
   { email: "tuan@ahamove.com",     full_name: "Tuan",     role: "judge", title: "Giám khảo", location: null },
@@ -60,6 +60,16 @@ const USERS = [
   { email: "chunglh@ahamove.com",  full_name: "Chunglh",  role: "judge", title: "Giám khảo", location: null },
   { email: "tuannq@ahamove.com",   full_name: "Tuannq",   role: "judge", title: "Giám khảo", location: null },
   { email: "vyphb@ahamove.com",    full_name: "Vyphb",    role: "judge", title: "Giám khảo", location: null },
+  /*
+   * Hai BGK bổ sung. BTC đã xác nhận chấm cả hai đầu cầu như tám người trên, nên
+   * không còn cờ `autoAssign` — seed phân công họ bình thường.
+   *
+   * `full_name` vẫn là email vì chưa ai gửi tên thật, và cột đó NOT NULL nên
+   * không để trống được. Không bịa tên. `title` để null; Admin hiển thị nhãn mặc
+   * định "Giám khảo" qua fallback ở views.ts.
+   */
+  { email: "linhth@ahamove.com", full_name: "linhth@ahamove.com", role: "judge", title: null, location: null },
+  { email: "tamntm@ahamove.com", full_name: "tamntm@ahamove.com", role: "judge", title: null, location: null },
 ];
 
 /* ── Mở DB ───────────────────────────────────────────────────────────────── */
@@ -134,6 +144,14 @@ for (const p of snapshot.performances) {
 
 for (const u of USERS) {
   const t = now();
+  /*
+   * Chuẩn hoá email trước khi ghi. Cột `email` là UNIQUE và mọi truy vấn đăng
+   * nhập đi qua `normalizeEmail()` ở src/lib/server/users.ts, thứ luôn trim và
+   * lowercase. Nếu seed ghi "Linhth@Ahamove.com" thì hàng đó tồn tại nhưng
+   * `findByEmail("linhth@ahamove.com")` không thấy — BGK gõ đúng email của mình
+   * mà hệ thống báo không có trong danh sách.
+   */
+  const email = u.email.trim().toLowerCase();
   run(
     `insert into users (id, email, full_name, role, title, location, status, created_at, updated_at)
      values (?, ?, ?, ?, ?, ?, 'active', ?, ?)
@@ -141,7 +159,7 @@ for (const u of USERS) {
        full_name = excluded.full_name, role = excluded.role,
        title = excluded.title, location = excluded.location, updated_at = excluded.updated_at`,
     randomUUID(),
-    u.email,
+    email,
     u.full_name,
     u.role,
     u.title,
@@ -157,12 +175,25 @@ for (const u of USERS) {
  * judge/[location]/dashboard giao danh sách đã duyệt với danh sách phân công.
  */
 
+/*
+ * BGK có `autoAssign: false` bị loại khỏi vòng phân công: đầu cầu của họ chưa
+ * được xác nhận, và mọi dòng trong `judge_assignments` bắt buộc phải mang một
+ * đầu cầu cụ thể (cột `location` là NOT NULL). Phân công họ lúc này tức là tự
+ * quyết thay Ban Tổ chức.
+ *
+ * Họ vẫn đăng nhập được và vẫn hiện trong Admin > Ban giám khảo — chỉ là
+ * dashboard trống cho tới khi có phân công.
+ */
+const PENDING_ASSIGNMENT = new Set(
+  USERS.filter((u) => u.autoAssign === false).map((u) => u.email.trim().toLowerCase()),
+);
+
 let assignments = 0;
 for (const location of ["SGN", "HAN"]) {
   const judges = all(
-    "select id from users where role = 'judge' and status = 'active' and (location is null or location = ?)",
+    "select id, email from users where role = 'judge' and status = 'active' and (location is null or location = ?)",
     location,
-  );
+  ).filter((j) => !PENDING_ASSIGNMENT.has(j.email));
   const performances = all(
     "select id from performances where location = ? and review_status = 'approved'",
     location,

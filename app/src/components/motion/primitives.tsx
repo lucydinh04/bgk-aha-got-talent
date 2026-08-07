@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import qrcodeGenerator from "qrcode-generator";
 
 import { useMotion } from "./MotionRoot";
 
@@ -249,6 +250,58 @@ export function EnergyPulse({ trigger }: { trigger: number | string }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   QRCode — mã QR thật, vẽ bằng inline SVG.
+
+   Vì sao dùng thư viện chứ không tự viết: QR cần số học trường Galois cho sửa
+   lỗi Reed–Solomon cộng tám lần chấm điểm mask. Tự viết thì lỗi sai lặng lẽ —
+   mã vẫn hiện ra, trông vẫn giống QR, chỉ là không quét được. Phát hiện điều đó
+   vào đúng lúc hai trăm khán giả giơ điện thoại lên là quá muộn.
+   `qrcode-generator` không có dependency nào và API đồng bộ.
+
+   Vì sao SVG chứ không canvas: một `<path>` duy nhất, không context 2D, không
+   `useEffect`, không rasterise lại khi khung đổi kích thước. Trên tường LED nó
+   sắc nét ở mọi độ phân giải.
+
+   Mức sửa lỗi Q (25%): cao hơn mặc định M, đổi lấy mã dày hơn một chút. Đáng,
+   vì màn LED có moiré và loá đèn sân khấu — điện thoại sẽ đọc thiếu vài module.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export function QRCode({ value, className = "" }: { value: string; className?: string }) {
+  const { path, size } = useMemo(() => {
+    const qr = qrcodeGenerator(0, "Q");
+    qr.addData(value);
+    qr.make();
+    const n = qr.getModuleCount();
+    let d = "";
+    for (let r = 0; r < n; r += 1) {
+      for (let c = 0; c < n; c += 1) {
+        if (qr.isDark(r, c)) d += `M${c},${r}h1v1h-1z`;
+      }
+    }
+    return { path: d, size: n };
+  }, [value]);
+
+  /*
+    Quiet zone 4 module mỗi phía là bắt buộc theo chuẩn ISO/IEC 18004. Thiếu nó
+    thì nhiều máy quét không tìm thấy mã. Ở đây nó nằm trong viewBox nên không
+    phụ thuộc vào padding của phần tử cha.
+  */
+  const q = 4;
+  return (
+    <svg
+      viewBox={`${-q} ${-q} ${size + q * 2} ${size + q * 2}`}
+      className={className}
+      shapeRendering="crispEdges"
+      role="img"
+      aria-label={`Mã QR tới ${value}`}
+    >
+      <rect x={-q} y={-q} width={size + q * 2} height={size + q * 2} fill="#fff" />
+      <path d={path} fill="#000" />
+    </svg>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    MotionSafeQR — khung QR không bao giờ bị animate.
 
    Panel tối đặc phía sau, không blur, không rotate, không scale lặp, không
@@ -257,46 +310,50 @@ export function EnergyPulse({ trigger }: { trigger: number | string }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function MotionSafeQR({
+  value,
   children,
   caption,
-  // 12cqw = 361px trên canvas 3008×1088. Bản 16:9 dùng 22cqw; trên khung
-  // ultra-wide con số đó ra 662px và chiếm gần trọn 944px chiều cao khả dụng.
-  size = "12cqw",
+  /*
+    KHOẢNG CÁCH QUÉT quyết định con số này, không phải thẩm mỹ.
+
+    Quy tắc thực địa: một mã QR quét được từ khoảng cách ≈ 10 lần bề rộng của nó.
+    Tường LED rộng 3008px; nếu tường vật lý rộng 8m thì 1px ≈ 2.66mm, nên
+    20cqw = 602px ≈ 1.6m và quét được từ khoảng 16m — tới được hàng ghế cuối của
+    phần lớn hội trường.
+
+    Bản trước để 12cqw (361px ≈ 0.96m, quét được ~9m) và trước nữa là 22cqw của
+    khung 16:9. Ở khung ultra-wide có thừa bề ngang, nên đây là chỗ nên tiêu.
+  */
+  size = "20cqw",
 }: {
+  /** Nội dung mã hoá vào QR. Thiếu thì khung để trống thay vì vẽ mã sai. */
+  value?: string;
   children?: ReactNode;
   caption?: string;
   size?: string;
 }) {
   return (
     <div
-      className="anim-enter-pop flex flex-col items-center gap-[1cqw] rounded-[1.2cqw] bg-white p-[1.4cqw]"
+      className="anim-enter-pop flex flex-col items-center gap-[0.8cqw] rounded-[0.8cqw] bg-white p-[1cqw]"
       style={{
         // Không box-shadow động, không filter — GPU không phải vẽ lại khung này.
-        boxShadow: "0 0 0 0.5cqw rgba(4,9,20,.92), 0 1.6cqw 4cqw rgba(4,9,20,.7)",
+        boxShadow: "0 0 0 0.35cqw rgba(4,9,20,.92), 0 1.2cqw 3cqw rgba(4,9,20,.7)",
       }}
     >
       <div
         className="grid place-items-center bg-white"
         style={{ width: size, height: size }}
       >
-        {children ?? <QRPlaceholder />}
+        {children ?? (value ? <QRCode value={value} className="h-full w-full" /> : null)}
       </div>
       {/* Caption là URL để gõ tay khi máy không quét được QR, nên nó phải đọc
-          được từ chỗ ngồi — cỡ meta (40px @1920), không phải 1.1cqw (21px). */}
+          được từ chỗ ngồi. `break-all` vì URL Railway dài hơn bề ngang khung. */}
       {caption ? (
-        <span className="tnum text-led-meta font-mono tracking-[0.04em] text-[#060d1e]">
+        <span className="tnum text-led-meta max-w-full break-all text-center font-mono leading-tight tracking-[0.02em] text-[#060d1e]">
           {caption}
         </span>
       ) : null}
     </div>
-  );
-}
-
-function QRPlaceholder() {
-  return (
-    <span className="font-mono text-[0.9cqw] tracking-[0.2em] text-[#5e7a9c] uppercase">
-      QR
-    </span>
   );
 }
 

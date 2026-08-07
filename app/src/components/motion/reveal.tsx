@@ -478,9 +478,12 @@ export function VoteLivePanel({
   serverNow: string;
 }) {
   return (
-    <div className="led-core flex h-full items-center justify-between gap-[3cqw]">
-      <div className="flex flex-col gap-[1.4cqw]">
-        <span className="anim-enter-left text-led-meta font-mono tracking-[0.26em] text-[#3ED8F0] uppercase">
+    /* Neo xuống đáy chứ không canh giữa: QR cao ~690px, mà badge 11 năm chiếm
+       góc trên-phải tới y≈288. Canh giữa thì hai thứ chồng lên nhau đúng ở góc
+       đó. Neo đáy cũng khớp với ngôn ngữ lower-third của các state còn lại. */
+    <div className="led-core flex h-full items-end justify-between gap-[3cqw] pb-[1cqw]">
+      <div className="flex flex-col gap-[1.4cqw] pb-[1cqw]">
+        <span className="anim-enter-left text-led-meta font-mono tracking-[0.26em] text-[#5FE4F7] uppercase [text-shadow:0_0.1cqw_0.5cqw_rgba(4,9,20,.98)]">
           Bình chọn tiết mục yêu thích
         </span>
         <VoteCountdown endsAt={endsAt} serverNow={serverNow} />
@@ -502,8 +505,10 @@ export function VoteLivePanel({
         </p>
       </div>
 
-      {/* QR đứng yên tuyệt đối — không animate, không blur, không particle đè */}
-      <MotionSafeQR caption={voteUrl} />
+      {/* QR đứng yên tuyệt đối — không animate, không blur, không particle đè.
+          `value` là URL thật từ snapshot, nên mã quét ra đúng trang bình chọn
+          của đầu cầu đang chiếu. Caption giữ nguyên URL để gõ tay khi cần. */}
+      <MotionSafeQR value={voteUrl} caption={voteUrl} size="18cqw" />
     </div>
   );
 }

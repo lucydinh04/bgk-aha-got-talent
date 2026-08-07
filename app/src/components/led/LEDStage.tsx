@@ -1,6 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useLayoutEffect, useState, type ReactNode } from "react";
+import { AnniversaryBadge, CampaignLogo } from "@/components/campaign";
 import { AnimatedCampaignBackground } from "@/components/motion/AnimatedCampaignBackground";
 import {
   AnimatedCounter,
@@ -112,12 +113,24 @@ export function LEDStage({
         className="@container relative isolate w-full max-w-full overflow-hidden"
         style={{
           aspectRatio: `${LED_CANVAS.width} / ${LED_CANVAS.height}`,
-          // Không bao giờ cao hơn viewport: trên màn 16:9 khung sẽ letterbox
-          // trên/dưới thay vì bị cắt hai bên.
-          maxHeight: "100dvh",
+          /*
+            Trần chiều cao giữ khung không tràn ra ngoài màn: trên viewport 16:9
+            khung letterbox trên/dưới thay vì bị cắt hai bên.
+
+            Trong frame preview thì trần phải là 100% của hộp 3008×1088 tổng hợp,
+            KHÔNG phải `100dvh`. Viewport thật lúc đó chỉ vài trăm pixel, nên
+            `100dvh` bóp canvas xuống còn tỉ lệ 5.4:1 và mọi thứ tính theo chiều
+            cao đều sai.
+          */
+          maxHeight: fill ? "100%" : "100dvh",
         }}
       >
         <AnimatedCampaignBackground quiet={quiet} bare={bare} anchor={anchor} />
+        {/* Branding đặt ở LEDStage chứ không ở StageGrid: các màn bình chọn và
+            công bố giải dựng layout riêng trong reveal.tsx và không đi qua
+            StageGrid, nên nếu để logo ở đó thì đúng những màn khán giả nhìn lâu
+            nhất lại là những màn không có logo. */}
+        {!bare ? <LEDBrand /> : null}
         <div className="led-safe relative z-10 flex h-full w-full flex-col">
           {children}
         </div>
@@ -130,34 +143,57 @@ export function LEDStage({
  * Chế độ xem khung thật — CHỈ development.
  *
  * Dựng canvas ở đúng 3008 × 1088 CSS pixel rồi thu nhỏ bằng `transform: scale`
- * để lọt viewport. Khác hẳn với việc mở `/live` ở cửa sổ nhỏ: ở đây mọi cỡ chữ
- * là px THẬT của canvas, nên đo được trực tiếp bằng devtools và kiểm được luật
- * "không chữ nào dưới 30px".
+ * để lọt viewport. Khác hẳn việc mở `/live` ở cửa sổ nhỏ: ở đây mọi cỡ chữ là px
+ * THẬT của canvas, nên đo trực tiếp bằng devtools và kiểm được luật "không chữ
+ * nào dưới 30px".
  *
- * Hệ số thu nhỏ tính thuần bằng CSS `min()`, không JS, nên không có resize
- * listener và không lệch hydration. Hộp bọc ngoài lấy kích thước ĐÃ nhân hệ số
- * để trang không sinh scrollbar — `transform` không thu nhỏ ô layout mà nó chiếm.
+ * VÌ SAO PHẢI TÍNH BẰNG JS
+ *
+ * Bản đầu thử thuần CSS: `transform: scale(min((100dvw - 4rem) / 3008, …))`.
+ * Không chạy. `scale()` cần một số KHÔNG đơn vị, còn `length / number` trong CSS
+ * cho ra một length — và CSS không có phép chia length cho length để ra tỉ lệ.
+ * Nên hệ số phải do JS tính.
+ *
+ * Đây là component chỉ tồn tại ở development và không nằm trên đường đi của màn
+ * LED thật, nên một resize listener ở đây không ảnh hưởng gì tới đêm diễn.
+ * Render đầu dùng scale 1 để server và client ra cùng một DOM; `useLayoutEffect`
+ * sửa lại trước khi trình duyệt paint, nên không thấy nhảy.
  */
 export function LEDFramePreview({ children }: { children: ReactNode }) {
-  const scale = `min((100dvw - 4rem) / ${LED_CANVAS.width}, (100dvh - 7rem) / ${LED_CANVAS.height})`;
+  const [scale, setScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const fit = () =>
+      setScale(
+        Math.min(
+          (window.innerWidth - 64) / LED_CANVAS.width,
+          (window.innerHeight - 112) / LED_CANVAS.height,
+// Không phóng to quá 1: xem khung ở 150% không nói lên điều gì về màn thật.
+          1,
+        ),
+      );
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, []);
+
   return (
-    <div
-      className="bg-ink flex min-h-dvh flex-col items-center justify-center gap-[1.5rem] p-8"
-      style={{ ["--led-scale" as string]: scale }}
-    >
+    <div className="bg-ink flex min-h-dvh flex-col items-center justify-center gap-6 p-8">
+      {/* Hộp bọc lấy kích thước ĐÃ nhân hệ số: `transform` không thu nhỏ ô layout
+          mà phần tử chiếm, nên thiếu lớp này thì trang sinh scrollbar. */}
       <div
         style={{
-          width: `calc(${LED_CANVAS.width}px * var(--led-scale))`,
-          height: `calc(${LED_CANVAS.height}px * var(--led-scale))`,
+          width: LED_CANVAS.width * scale,
+          height: LED_CANVAS.height * scale,
           outline: "1px solid rgba(53,214,240,.45)",
-          outlineOffset: "0.5rem",
+          outlineOffset: "8px",
         }}
       >
         <div
           style={{
             width: LED_CANVAS.width,
             height: LED_CANVAS.height,
-            transform: "scale(var(--led-scale))",
+            transform: `scale(${scale})`,
             transformOrigin: "top left",
           }}
         >
@@ -166,8 +202,49 @@ export function LEDFramePreview({ children }: { children: ReactNode }) {
       </div>
       <p className="text-silver-dim font-mono text-xs tracking-[0.2em] uppercase">
         Khung LED thật · {LED_CANVAS.width} × {LED_CANVAS.height} px · tỉ lệ{" "}
-        {(LED_CANVAS.width / LED_CANVAS.height).toFixed(3)}:1 · safe zone 120 × 72
+        {(LED_CANVAS.width / LED_CANVAS.height).toFixed(3)}:1 · safe zone 120 × 72 ·
+        thu nhỏ {(scale * 100).toFixed(1)}%
       </p>
+    </div>
+  );
+}
+
+/**
+ * Logo Ahamove góc trên-trái, badge 11 năm góc trên-phải.
+ *
+ * Nền `kvLedUltrawide` KHÔNG in sẵn branding — chữ "AHAMOVE" trên tháp đồng hồ
+ * là chi tiết vẽ trong tranh, không phải wordmark. Nên màn phải tự đặt asset
+ * chính thức vào.
+ *
+ * Định vị tuyệt đối theo đúng safe zone. Containing block của phần tử absolute
+ * là PADDING BOX của cha, mà cha ở đây phủ trọn canvas — nên `top: 0` sẽ nằm
+ * sát mép tường. Phải đặt thẳng bằng `--led-safe-*` thì logo mới thật sự nằm
+ * trong vùng an toàn 120 × 72.
+ *
+ * `drop-shadow` chứ không phải một tấm nền phía sau: wordmark màu trắng, và nền
+ * neon có những mảng sáng đủ để nuốt nó. Bóng đổ tách được chữ khỏi nền mà không
+ * phải thêm một cái hộp trông như thành phần giao diện web.
+ */
+function LEDBrand() {
+  return (
+    <div
+      className="pointer-events-none absolute z-20 flex items-start justify-between"
+      style={{
+        top: "var(--led-safe-y)",
+        left: "var(--led-safe-x)",
+        right: "var(--led-safe-x)",
+      }}
+    >
+      <CampaignLogo
+        width="13cqw"
+        priority
+        className="drop-shadow-[0_0.15cqw_0.6cqw_rgba(4,9,20,0.98)]"
+      />
+      <AnniversaryBadge
+        width="7cqw"
+        priority
+        className="drop-shadow-[0_0.15cqw_0.6cqw_rgba(4,9,20,0.9)]"
+      />
     </div>
   );
 }
@@ -194,11 +271,19 @@ function StageGrid({
   children: ReactNode;
 }) {
   return (
-    <div className="grid h-full w-full grid-cols-[15%_70%_15%] items-stretch">
-      <div className="flex flex-col justify-start pr-[2cqw]">{left}</div>
-      <div className="flex min-w-0 flex-col justify-center">{children}</div>
-      <div className="flex flex-col items-end justify-end pl-[2cqw] text-right">
-        {right}
+    <div className="flex h-full w-full flex-col justify-end">
+      {/*
+        Dải nội dung dưới — lower third của một graphic phát sóng.
+
+        Vì sao xuống đáy chứ không canh giữa như bản trước: nền mới có sân khấu
+        và số 11 rực nhất ở CHÍNH GIỮA khung. Đặt chữ ở đó thì phải phủ scrim đủ
+        đậm để che mất đúng phần đẹp nhất của tranh. Dải sàn phản chiếu phía dưới
+        vừa tối hơn vừa ít chi tiết, nên chữ đọc được mà sân khấu vẫn nguyên.
+      */}
+      <div className="grid w-full shrink-0 grid-cols-[15%_70%_15%] items-end">
+        <div className="flex flex-col pr-[2cqw]">{left}</div>
+        <div className="flex min-w-0 flex-col">{children}</div>
+        <div className="flex flex-col items-end pl-[2cqw] text-right">{right}</div>
       </div>
     </div>
   );
@@ -214,7 +299,7 @@ function RailLabel({
 }) {
   return (
     <span
-      className={`text-led-meta font-mono tracking-[0.22em] text-[#7E93AE] uppercase ${className}`}
+      className={`text-led-meta font-mono tracking-[0.22em] text-[#A9BDD4] uppercase ${className}`}
     >
       {children}
     </span>
@@ -569,7 +654,7 @@ export function LEDJudging({
           </>
         }
       >
-        <div className="flex items-center gap-[3cqw]">
+        <div className="flex items-center gap-[2.4cqw]">
           {/* Cột chữ */}
           <div className="min-w-0 flex-1">
             <Eyebrow tone="cyan">
@@ -581,7 +666,10 @@ export function LEDJudging({
               />
               Ban Giám khảo đang chấm điểm
             </Eyebrow>
-            <p className="display text-led-title mt-[0.5cqw] truncate text-[#DCE7F5]">
+            {/* Hai dòng chứ không `truncate`: tên tiết mục thật dài tới 30 ký tự
+                ("Mười Một Năm — Một Chặng Đường"), và cắt bằng dấu ba chấm trên
+                màn sân khấu đọc ra là hệ thống lỗi, không phải thiết kế. */}
+            <p className="display text-led-title mt-[0.4cqw] line-clamp-2 text-[#DCE7F5]">
               {performance.performanceName}
             </p>
             <AnimatedProgress

@@ -86,17 +86,13 @@ export function AnimatedCampaignBackground({
   return (
     <>
       {/*
-        1 · KV city — scale đồng đều, không bao giờ scaleX riêng lẻ.
+        1 · Nền sân khấu neon — scale đồng đều, không bao giờ scaleX riêng lẻ.
         Animation liên tục cỡ lớn DUY NHẤT trên màn này.
 
-        Dùng `coverLandscape` (3000×1322 = 2.27:1) chứ KHÔNG phải `kvLandscape`
-        (1920×1072 = 1.79:1). Canvas LED là 3008×1088 = 2.765:1, nên:
+        `kvLedUltrawide` là 2084×754 = 2.764:1, còn canvas LED là 3008×1088 =
+        2.765:1. Lệch 0.04% nên `cover` không cắt một pixel nào — khác hẳn hai
+        asset cũ (`coverLandscape` cắt 18% chiều cao, `kvLandscape` cắt 35%).
 
-          · coverLandscape → cover cắt 18% chiều cao
-          · kvLandscape    → cover cắt 35% chiều cao
-
-        Ở mức cắt 35%, hai góc trên của artwork mất — đúng chỗ logo Ahamove và
-        badge 11 năm được in sẵn. Với 18% thì phần branding ở giữa ảnh còn nguyên.
         Không bao giờ dùng `fit: contain` ở đây: nó để lại hai dải navy hai bên
         giữa lòng canvas, trông như ảnh bị đặt lệch chứ không phải nền sân khấu.
       */}
@@ -106,7 +102,7 @@ export function AnimatedCampaignBackground({
         style={{ animation: "kv-drift 18s ease-in-out infinite alternate" }}
       >
         <CampaignImage
-          asset="coverLandscape"
+          asset="kvLedUltrawide"
           fill
           priority
           quality={90}
@@ -128,6 +124,10 @@ export function AnimatedCampaignBackground({
       {/* 6 · Overlay của design system — giữ nguyên, không đổi màu KV */}
       <Overlay level={level} />
 
+      {/* 6b · Tấm nền lõi. Standby ít chữ nên dùng bản nhẹ — nó vẫn cần một chút
+             để dòng eyebrow không chìm vào headline in sẵn của artwork. */}
+      {!bare ? <CoreScrim strength={quiet ? "strong" : "soft"} /> : null}
+
       {/*
         Scrim trung tâm cho màn công bố. Ellipse chứ không phủ đều: bốn mép vẫn
         giữ light trail cam và cyan của artwork, chỉ vùng đặt chữ mới tối đi.
@@ -145,6 +145,51 @@ export function AnimatedCampaignBackground({
 
       {!bare ? <VignetteNoise /> : null}
     </>
+  );
+}
+
+/* ── Lớp 6b · Tấm nền lõi ────────────────────────────────────────────────
+   Vấn đề: artwork campaign in sẵn headline "CHUYỂN MÌNH BỨT PHÁ" rất sáng ở
+   chính giữa, mà lõi 70% giữa canvas cũng là nơi đặt chữ vận hành. Chữ trắng đè
+   chữ trắng thì không ai đọc được từ cuối hội trường.
+
+   Cách sai đã thử: tăng độ đậm của overlay toàn khung. Nó làm artwork chết hẳn —
+   canvas thành một hộp navy trơn, mất sạch ngôn ngữ thành phố và light trail.
+
+   Cách đúng: một tấm nền KHU TRÚ. Gradient ngang đậm ở lõi 70% và tan hết về hai
+   dải mép; `mask-image` dọc cắt mềm trên dưới để không phủ kín chiều cao. Kết quả
+   là một tấm nền có bốn biên mềm, đúng chỗ có chữ — hai dải mép vẫn giữ nguyên
+   màu campaign, đó chính là lý do bố cục này dành 15% mỗi bên cho không khí.
+
+   Hoàn toàn tĩnh: không animation, không blur, không backdrop-filter. */
+
+function CoreScrim({ strength = "strong" }: { strength?: "strong" | "soft" }) {
+  // `soft` cho standby: chỉ đủ tách chữ khỏi sàn phản chiếu, artwork giữ gần như
+  // nguyên độ rực. `strong` cho các state vận hành có nhiều chữ và có con số phải
+  // đọc từ cuối hội trường.
+  const a = strength === "strong" ? [0.92, 0.96] : [0.62, 0.76];
+
+  /*
+    Dải ĐÁY, không còn là dải giữa.
+
+    Nền mới rực nhất ở chính giữa — sân khấu và số 11. Bản trước phủ tối đúng
+    vùng đó để đặt chữ, tức là che mất phần đẹp nhất của tranh. Giờ chữ neo xuống
+    dải sàn phản chiếu, nên scrim cũng đi theo: mờ dần từ 34% xuống, đặc ở đáy.
+
+    Vẫn tan về hai mép ngang để hai dải 15% giữ nguyên màu campaign.
+  */
+  const mask =
+    "linear-gradient(to bottom, transparent 22%, rgba(0,0,0,.42) 38%, rgba(0,0,0,.88) 58%, #000 78%)";
+  return (
+    <div
+      aria-hidden
+      className="motion-layer"
+      style={{
+        background: `linear-gradient(to right, transparent 0%, rgba(4,9,20,${a[0]}) 12%, rgba(4,9,20,${a[1]}) 50%, rgba(4,9,20,${a[0]}) 88%, transparent 100%)`,
+        maskImage: mask,
+        WebkitMaskImage: mask,
+      }}
+    />
   );
 }
 

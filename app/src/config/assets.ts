@@ -14,6 +14,7 @@ export type CampaignAssetKey =
   | "coverLandscape"
   | "kvLandscape"
   | "kvPortrait"
+  | "kvLedUltrawide"
   | "anniversary11";
 
 export interface CampaignAsset {
@@ -83,6 +84,27 @@ export const campaignAssets: Record<CampaignAssetKey, CampaignAsset> = {
     "Aha Got Talent 2026 — Ahamove 11 năm chuyển mình",
     true,
     "Icon A chiếm gần trọn khung. Cover sang khung hẹp hơn 1:1 sẽ cắt mất chân icon A — dùng khung vuông.",
+  ),
+
+  /**
+   * Nền màn LED ultra-wide — 2084×754 = 2.764:1, khớp gần như tuyệt đối canvas
+   * 3008×1088 (2.765:1), nên `cover` không cắt gì.
+   *
+   * KHÔNG có branding in sẵn: không logo Ahamove, không badge 11 năm. Chữ
+   * "AHAMOVE" trên tháp đồng hồ là chi tiết vẽ trong tranh, không phải wordmark
+   * chính thức — không được coi nó là logo. Vì vậy màn LED phải tự đặt
+   * `CampaignLogo` và `AnniversaryBadge` vào safe zone.
+   *
+   * Vùng sáng nhất là sân khấu và số 11 ở CHÍNH GIỮA khung. Chữ vận hành vì thế
+   * neo xuống dải sàn phản chiếu phía dưới, không đặt giữa.
+   */
+  kvLedUltrawide: asset(
+    "/images/kv-led-ultrawide.png",
+    2084,
+    754,
+    "Aha Got Talent 2026 — sân khấu neon 11 năm Ahamove",
+    false,
+    "Sân khấu và số 11 chiếm trọn vùng giữa. Chỉ đặt chữ ở dải sàn phía dưới.",
   ),
 
   /** Badge 11 năm, nền trong suốt. */
